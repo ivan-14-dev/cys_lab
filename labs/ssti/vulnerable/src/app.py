@@ -178,7 +178,7 @@ function doGreet(){{
 }}
 
 var LANG='fr';var TXT={{fr:{{demo:'Démonstration',theory:'Théorie',code:'Code',fix:'Correction',langLabel:'EN'}},en:{{demo:'Demonstration',theory:'Theory',code:'Code',fix:'Defense',langLabel:'FR'}}}};
-function toggleLang(){{LANG=LANG==='fr'?'en':'fr';var b=document.getElementById('lang-btn');if(b)b.textContent=TXT[LANG].langLabel;document.querySelectorAll('[data-key]').forEach(function(el){{var k=el.getAttribute('data-key');if(TXT[LANG][k])el.textContent=TXT[LANG][k];}});}}
+function toggleLang(){{LANG=LANG==='fr'?'en':'fr';var b=document.getElementById('lang-btn');if(b)b.textContent=TXT[LANG].langLabel;document.querySelectorAll('.tb').forEach(function(el){{var oc=el.getAttribute('onclick')||'';var key=null;if(oc.indexOf("'demo'")>=0)key='demo';else if(oc.indexOf("'theory'")>=0)key='theory';else if(oc.indexOf("'code'")>=0)key='code';else if(oc.indexOf("'fix'")>=0)key='fix';if(key&&TXT[LANG][key]){{el.childNodes.forEach(function(n){{if(n.nodeType===3&&n.textContent.trim()){{n.textContent=' '+TXT[LANG][key];}}); }} }}); }}
 function setPayload(btn){{var u=btn.getAttribute('data-u');var p=btn.getAttribute('data-p');var v=btn.getAttribute('data-v');if(document.getElementById('fu')&&u!==null)document.getElementById('fu').value=u;if(document.getElementById('fp')&&p!==null)document.getElementById('fp').value=p;if(document.getElementById('fname')&&v!==null)document.getElementById('fname').value=v;if(document.getElementById('ft')&&v!==null)document.getElementById('ft').value=v;if(typeof updatePreview==='function')updatePreview();if(typeof updateQ==='function')updateQ();}}
 </script>
 </body></html>"""
