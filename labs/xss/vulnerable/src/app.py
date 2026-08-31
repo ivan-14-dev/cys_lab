@@ -99,25 +99,25 @@ PAGE = f"""<!DOCTYPE html>
   <div class="lbl">Payload 1 — Modification du DOM</div>
   <div class="cd">&lt;img src=x onerror="document.title='XSS_PWNED'"&gt;</div>
   <div class="desc">L'événement <code>onerror</code> exécute du JS. Regardez le titre de l'onglet changer.</div>
-  <button class="btn btn-gray" onclick="fillP('Alice','&lt;img src=x onerror=\\'document.title=\\\"XSS_PWNED\\\"\\'&gt;')"><i class="fa-solid fa-play"></i> Essayer</button>
+  <button class="btn btn-gray" data-u="Alice" data-v="&lt;img src=x onerror='document.title=&quot;XSS_PWNED&quot;'&gt;" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
 </div>
 <div class="pl">
   <div class="lbl">Payload 2 — Injection HTML stylée</div>
   <div class="cd">&lt;b style="color:red;font-size:26px"&gt;INJECTION DÉTECTÉE&lt;/b&gt;</div>
   <div class="desc">Balise HTML rendue directement. La mise en forme est appliquée.</div>
-  <button class="btn btn-gray" onclick="fillP('Bob','&lt;b style=\\'color:red;font-size:26px\\'&gt;INJECTION DÉTECTÉE&lt;/b&gt;')"><i class="fa-solid fa-play"></i> Essayer</button>
+  <button class="btn btn-gray" data-u="Bob" data-v="&lt;b style='color:red;font-size:26px'&gt;INJECTION DÉTECTÉE&lt;/b&gt;" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
 </div>
 <div class="pl">
   <div class="lbl">Payload 3 — Script inline</div>
   <div class="cd">&lt;script&gt;alert('XSS lab — 10 pts')&lt;/script&gt;</div>
   <div class="desc">Balise <code>&lt;script&gt;</code> injectée. Ouvrir la console F12.</div>
-  <button class="btn btn-gray" onclick="fillP('Eve','&lt;script&gt;alert(\\'XSS lab — 10 pts\\')&lt;/script&gt;')"><i class="fa-solid fa-play"></i> Essayer</button>
+  <button class="btn btn-gray" data-u="Eve" data-v="&lt;script&gt;alert('XSS lab — 10 pts')&lt;/script&gt;" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
 </div>
 <div class="pl">
   <div class="lbl">Référence — Texte normal</div>
   <div class="cd">Bonjour, beau lab !</div>
   <div class="desc">Entrée saine. Aucun comportement inattendu.</div>
-  <button class="btn btn-gray" onclick="fillP('Alice','Bonjour, beau lab !')"><i class="fa-solid fa-play"></i> Essayer</button>
+  <button class="btn btn-gray" data-u="Alice" data-v="Bonjour, beau lab !" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
 </div>
 </div>
 </div>
@@ -289,7 +289,7 @@ if not pattern.match(comment):
 </div>
 <script>
 function showTab(n,b){{document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');if(b)b.classList.add('active');}}
-function fillP(name,comment){{document.getElementById('fn').value=name;document.getElementById('fc').value=comment;}}
+
 function postComment(){{
   const name=document.getElementById('fn').value;
   const comment=document.getElementById('fc').value;

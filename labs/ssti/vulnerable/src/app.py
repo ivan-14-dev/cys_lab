@@ -28,10 +28,10 @@ PAGE = f"""<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>SST
 <div>
 <div class="card"><h2><i class="fa-solid fa-crosshairs"></i> Payloads SSTI</h2>
 <div class="box danger"><i class="fa-solid fa-triangle-exclamation"></i> Ces expressions sont <strong>évaluées par Jinja2</strong> côté serveur.</div>
-<div class="pl"><div class="lbl">Payload 1 — Calcul mathématique</div><div class="cd">{{{{7*7}}}}</div><div class="desc">Preuve : le moteur évalue l'expression. Résultat attendu : 49</div><button class="btn btn-gray" onclick="fillP('{{{{7*7}}}}')"><i class="fa-solid fa-play"></i> Essayer</button></div>
-<div class="pl"><div class="lbl">Payload 2 — Multiplication de chaîne</div><div class="cd">{{{{"SSTI "*5}}}}</div><div class="desc">Opération sur string. Résultat : SSTI SSTI SSTI SSTI SSTI</div><button class="btn btn-gray" onclick="fillP('{{{{\'SSTI \'*5}}}}')"><i class="fa-solid fa-play"></i> Essayer</button></div>
-<div class="pl"><div class="lbl">Payload 3 — Accès à l'objet config</div><div class="cd">{{{{config}}}}</div><div class="desc">Accès à l'objet Flask config — révèle la configuration.</div><button class="btn btn-gray" onclick="fillP('{{{{config}}}}')"><i class="fa-solid fa-play"></i> Essayer</button></div>
-<div class="pl"><div class="lbl">Référence — Nom normal</div><div class="cd">Alice</div><div class="desc">Entrée saine. Résultat attendu : Hello Alice!</div><button class="btn btn-gray" onclick="fillP('Alice')"><i class="fa-solid fa-play"></i> Essayer</button></div>
+<div class="pl"><div class="lbl">Payload 1 — Calcul mathématique</div><div class="cd">{{{{7*7}}}}</div><div class="desc">Preuve : le moteur évalue l'expression. Résultat attendu : 49</div><button class="btn btn-gray" data-v="{{{{7*7}}}}" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button></div>
+<div class="pl"><div class="lbl">Payload 2 — Multiplication de chaîne</div><div class="cd">{{{{"SSTI "*5}}}}</div><div class="desc">Opération sur string. Résultat : SSTI SSTI SSTI SSTI SSTI</div><button class="btn btn-gray" data-v="{{{{&#39;SSTI &#39;*5}}}}" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button></div>
+<div class="pl"><div class="lbl">Payload 3 — Accès à l'objet config</div><div class="cd">{{{{config}}}}</div><div class="desc">Accès à l'objet Flask config — révèle la configuration.</div><button class="btn btn-gray" data-v="{{{{config}}}}" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button></div>
+<div class="pl"><div class="lbl">Référence — Nom normal</div><div class="cd">Alice</div><div class="desc">Entrée saine. Résultat attendu : Hello Alice!</div><button class="btn btn-gray" data-v="Alice" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button></div>
 </div>
 </div>
 <div>
@@ -166,7 +166,6 @@ result = template.render(name=user_input)
 </div>
 <script>
 function showTab(n,b){{document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');if(b)b.classList.add('active');}}
-function fillP(v){{document.getElementById('fname').value=v;}}
 function doGreet(){{
   const name=document.getElementById('fname').value||'World';
   fetch('/api/greet?name='+encodeURIComponent(name)).then(r=>r.json()).then(d=>{{
