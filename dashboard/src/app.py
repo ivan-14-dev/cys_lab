@@ -158,7 +158,7 @@ _LABS = [
     },
 ]
 
-_TOTAL_POINTS = sum(lab["points"] for lab in _LABS)
+_TOTAL_POINTS = sum(lab["points"] for lab in _LABS)  # 110 total
 
 _TEMPLATE = """<!DOCTYPE html>
 <html lang="en">

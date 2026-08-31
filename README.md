@@ -23,8 +23,9 @@ Every vulnerability is **intentionally created** for educational purposes.
 | Log Injection      | 5      | Easy       | A09:2021 |
 | Header Injection   | 5      | Easy       | A03:2021 |
 | Expression Inject. | 10     | Medium     | A03:2021 |
+| SQL Injection      | 15     | Medium     | A03:2021 |
 
-**Total: 95 points** — SQL Injection: theory only → [`docs/sql-injection-theory.md`](docs/sql-injection-theory.md)
+**Total: 110 points**
 
 ## Quick Start
 
@@ -49,6 +50,7 @@ localhost:5013/5014  →  CSV Injection
 localhost:5015/5016  →  Log Injection
 localhost:5017/5018  →  Header Injection
 localhost:5019/5020  →  Expression Injection
+localhost:5021/5022  →  SQL Injection
 [ lab-network: internal only, no external internet access ]
 ```
 

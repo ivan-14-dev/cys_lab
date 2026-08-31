@@ -96,6 +96,11 @@ lab-xpath: ## Start only the XPath Injection lab
 	@echo "XPath Vulnerable: http://localhost:5011"
 	@echo "XPath Secure:     http://localhost:5012"
 
+lab-sql: ## Start only the SQL Injection lab
+	$(COMPOSE) --env-file $(ENV_FILE) up -d sqli-vulnerable sqli-secure
+	@echo "SQL Vuln:   http://localhost:5021"
+	@echo "SQL Secure: http://localhost:5022"
+
 lab-csv: ## Start only the CSV Injection lab
 	$(COMPOSE) --env-file $(ENV_FILE) up -d csv-vulnerable csv-secure
 	@echo "CSV Vulnerable: http://localhost:5013"
