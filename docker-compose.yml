@@ -1,0 +1,476 @@
+---
+# Injection Security Lab — Docker Compose
+# ⚠️ EDUCATIONAL USE ONLY — DO NOT EXPOSE TO INTERNET
+
+networks:
+  lab-network:
+    internal: true  # No external internet access
+    driver: bridge
+
+volumes:
+  mongodb-data:
+  ldap-data:
+
+x-security-defaults: &security-defaults
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  restart: unless-stopped
+
+x-resource-limits: &resource-limits
+  mem_limit: "256m"
+  cpus: "0.5"
+
+services:
+
+  # ─────────────────────────────────────────
+  # DASHBOARD
+  # ─────────────────────────────────────────
+  dashboard:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8080:8080"
+    networks:
+      - lab-network
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+    tmpfs:
+      - /tmp
+    read_only: true
+
+  # ─────────────────────────────────────────
+  # XSS LAB
+  # ─────────────────────────────────────────
+  xss-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/xss/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5001:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  xss-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/xss/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5002:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # COMMAND INJECTION LAB
+  # ─────────────────────────────────────────
+  cmd-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/command-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5003:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+      - /app/data
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  cmd-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/command-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5004:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # SSTI LAB
+  # ─────────────────────────────────────────
+  ssti-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/ssti/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5005:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  ssti-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/ssti/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5006:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # MONGODB (internal only)
+  # ─────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0-jammy
+    <<: [*resource-limits]
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - lab-network
+    volumes:
+      - mongodb-data:/data/db
+      - ./shared/sample-data/nosql-seed.js:/docker-entrypoint-initdb.d/seed.js:ro
+    environment:
+      - MONGO_INITDB_DATABASE=lab_nosql
+    expose:
+      - "27017"
+    # No external port — internal network only
+
+  # ─────────────────────────────────────────
+  # NOSQL INJECTION LAB
+  # ─────────────────────────────────────────
+  nosql-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/nosql-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5007:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    depends_on:
+      - mongodb
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+      - MONGO_URI=mongodb://mongodb:27017/lab_nosql
+
+  nosql-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/nosql-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5008:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    depends_on:
+      - mongodb
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+      - MONGO_URI=mongodb://mongodb:27017/lab_nosql
+
+  # ─────────────────────────────────────────
+  # OPENLDAP (internal only)
+  # ─────────────────────────────────────────
+  openldap:
+    image: osixia/openldap:1.5.0
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    networks:
+      - lab-network
+    expose:
+      - "389"
+    environment:
+      - LDAP_ORGANISATION=InjectionLab
+      - LDAP_DOMAIN=lab.local
+      - LDAP_ADMIN_PASSWORD=lab_admin_pass_123
+    volumes:
+      - ldap-data:/var/lib/ldap
+      - ./shared/sample-data/ldap-seed.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/seed.ldif:ro
+    command: --copy-service
+
+  # ─────────────────────────────────────────
+  # LDAP INJECTION LAB
+  # ─────────────────────────────────────────
+  ldap-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/ldap-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5009:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    depends_on:
+      - openldap
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+      - LDAP_HOST=openldap
+      - LDAP_PORT=389
+      - LDAP_BASE_DN=dc=lab,dc=local
+      - LDAP_ADMIN_PASSWORD=lab_admin_pass_123
+
+  ldap-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/ldap-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5010:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    depends_on:
+      - openldap
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+      - LDAP_HOST=openldap
+      - LDAP_PORT=389
+      - LDAP_BASE_DN=dc=lab,dc=local
+      - LDAP_ADMIN_PASSWORD=lab_admin_pass_123
+
+  # ─────────────────────────────────────────
+  # XPATH INJECTION LAB
+  # ─────────────────────────────────────────
+  xpath-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/xpath-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5011:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  xpath-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/xpath-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5012:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # CSV INJECTION LAB
+  # ─────────────────────────────────────────
+  csv-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/csv-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5013:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  csv-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/csv-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5014:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # LOG INJECTION LAB
+  # ─────────────────────────────────────────
+  log-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/log-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5015:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+      - /app/logs
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  log-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/log-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5016:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+      - /app/logs
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # HEADER INJECTION LAB
+  # ─────────────────────────────────────────
+  header-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/header-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5017:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  header-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/header-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5018:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # EXPRESSION INJECTION LAB
+  # ─────────────────────────────────────────
+  expr-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/expression-injection/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5019:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+
+  expr-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/expression-injection/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5020:5000"
+    networks:
+      - lab-network
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure

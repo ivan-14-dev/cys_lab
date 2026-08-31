@@ -1,0 +1,53 @@
+# LDAP seed data for LDAP Injection Lab
+# Fictional lab users only — no real data
+
+dn: dc=lab,dc=local
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: InjectionLab
+dc: lab
+
+dn: ou=users,dc=lab,dc=local
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: uid=ivan,ou=users,dc=lab,dc=local
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uid: ivan
+cn: ivan
+sn: Lab Admin
+mail: ivan@lab.local
+uidNumber: 1001
+gidNumber: 1001
+homeDirectory: /home/ivan
+userPassword: {SSHA}lab_ivan_pass_hash
+
+dn: uid=alice,ou=users,dc=lab,dc=local
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uid: alice
+cn: alice
+sn: Lab User Alice
+mail: alice@lab.local
+uidNumber: 1002
+gidNumber: 1002
+homeDirectory: /home/alice
+userPassword: {SSHA}lab_alice_pass_hash
+
+dn: uid=bob,ou=users,dc=lab,dc=local
+objectClass: top
+objectClass: posixAccount
+objectClass: inetOrgPerson
+uid: bob
+cn: bob
+sn: Lab User Bob
+mail: bob@lab.local
+uidNumber: 1003
+gidNumber: 1003
+homeDirectory: /home/bob
+userPassword: {SSHA}lab_bob_pass_hash
