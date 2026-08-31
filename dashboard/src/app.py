@@ -143,6 +143,19 @@ _LABS = [
         "cwe": "CWE-94",
         "status": "ready",
     },
+    {
+        "id": "sql",
+        "name": "SQL Injection",
+        "difficulty": "Medium",
+        "points": 15,
+        "component": "SQLite / Base de données",
+        "description": "La concaténation de chaînes dans les requêtes SQL permet le bypass d'authentification et l'extraction de données.",
+        "vuln_port": 5021,
+        "secure_port": 5022,
+        "owasp": "A03:2021",
+        "cwe": "CWE-89",
+        "status": "ready",
+    },
 ]
 
 _TOTAL_POINTS = sum(lab["points"] for lab in _LABS)
