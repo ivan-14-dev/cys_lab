@@ -186,7 +186,7 @@ Résultat : cookie envoyé à l'attaquant → session volée</div>
 <div class="code bad"><span style="color:#f85149"># MAUVAIS — f-string non sécurisée</span>
 return f"&lt;p&gt;Bonjour {{user_input}}&lt;/p&gt;"
 <span style="color:#6e7681"># user_input = "&lt;script&gt;alert(1)&lt;/script&gt;"
-# → &lt;p&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;/p&gt;  ← EXÉCUTÉ</span><button id="lang-btn" onclick="toggleLang()" style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.8em;font-weight:600">EN</button></div>
+# → &lt;p&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;/p&gt;  ← EXÉCUTÉ</span><button id="lang-btn" onclick="toggleLang()" style="margin-left:auto;background:#222;border:2px solid #ffeb3b;color:#ffeb3b;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:1em;font-weight:700">EN</button></div>
 <h2><i class="fa-solid fa-book-open"></i> Références</h2>
 <div class="box info">
   <div>CWE-79 — Improper Neutralization of Input During Web Page Generation</div>

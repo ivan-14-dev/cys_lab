@@ -40,7 +40,7 @@ code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-f
 p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}
 </style></head><body>
 <div class="bn"><i class="fa-solid fa-triangle-exclamation"></i> COMMAND INJECTION — VULNÉRABLE
-<span>| shell=True + concaténation | CWE-78 | OWASP A03:2021 | Sécurisé: localhost:5004</span><button id="lang-btn" onclick="toggleLang()" style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.8em;font-weight:600">EN</button></div>
+<span>| shell=True + concaténation | CWE-78 | OWASP A03:2021 | Sécurisé: localhost:5004</span><button id="lang-btn" onclick="toggleLang()" style="margin-left:auto;background:#222;border:2px solid #ffeb3b;color:#ffeb3b;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:1em;font-weight:700">EN</button></div>
 <div class="ctr">
 <h1>Command Injection — Outil de diagnostic réseau</h1>
 <div class="mt"><span class="bge br">Vulnérable</span><span class="bge bcwe">CWE-78</span><span class="bge bo">OWASP A03:2021</span></div>
