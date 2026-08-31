@@ -1,149 +1,25 @@
-"""
-XPath Injection Lab — Vulnerable Version
-<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
-
-Demonstrates: XPath filter injection via string concatenation
-CWE-643, OWASP A03:2021
-"""
+"""XPath Injection — Vulnerable"""
 from __future__ import annotations
-
 import os
 from typing import Any
-
-from flask import Flask, jsonify, request
+from flask import Flask,jsonify,request
 from lxml import etree
+app=Flask(__name__)
+app.secret_key="lab-xpath-vuln"
+_T=etree.fromstring(b'<users><user><username>alice</username><role>user</role></user><user><username>bob</username><role>user</role></user><user><username>admin</username><role>admin</role></user></users>')
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>XPath Injection</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn v"><i class="fa-solid fa-triangle-exclamation"></i> XPATH INJECTION — VULNÉRABLE <span>| CWE-643 | OWASP A03:2021 | Sécurisé: localhost:5012</span></div><div class="ctr"><h1>XPath Injection — Recherche XML</h1><div class="mt"><span class="bge br">Vulnérable</span><span class="bge bcwe">CWE-643</span><span class="bge bo">OWASP A03:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Payloads XPath</h2><div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> Ces payloads modifient la <strong>requête XPath</strong>.</div><div class="pl"><div class="lb">1 — Normal</div><div class="pc">alice</div><button class="btn btgr" onclick="f(\'alice\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Always-true (tous les users)</div><div class="pc">\' or \'1\'=\'1</div><div class="pd">XPath: //user[username=\'\' or \'1\'=\'1\'] — condition toujours vraie.</div><button class="btn btgr" onclick="f(&quot;\' or \'1\'=\'1&quot;)"><i class="fa-solid fa-play"></i> Injecter</button></div><div class="pl"><div class="lb">3 — Variante</div><div class="pc">alice\' or \'x\'=\'x</div><button class="btn btgr" onclick="f(&quot;alice\' or \'x\'=\'x&quot;)"><i class="fa-solid fa-play"></i> Injecter</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-triangle-exclamation"></i> Recherche XML vulnérable</h2><div class="bx d">Requête construite par concaténation. Les apostrophes altèrent la logique.</div><div class="fg"><label>Username</label><input id="fu" value="alice"></div><div style="font-size:.79em;color:#6e7681;margin-bottom:8px">XPath: <code id="xp">//user[username=\'alice\']</code></div><button class="btn btr" onclick="doSearch()"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button></div><div class="res" id="sr"><p style="color:#6e7681;font-size:.82em">Résultats ici...</p></div><div class="bx i" style="margin-top:8px">Comparez avec <a href="http://localhost:5012" style="color:#58a6ff">localhost:5012</a>.</div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-circle-question"></i> XPath Injection</h2><p>XPath est un langage de requête XML. L injection survient quand l entrée utilisateur est intégrée sans encodage dans une expression XPath.</p><div class="co">Normal: //user[username=\'alice\']\nRésultat: 1 user\n\nInjecté: //user[username=\'\' or \'1\'=\'1\']\nRésultat: TOUS les users (condition vraie)</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-bolt"></i> Impact</h2><div class="bx d"><ul><li>Extraction de toutes les données</li><li>Bypass d authentification</li><li>Accès aux nœuds non autorisés</li></ul></div><div class="bx i">CWE-643 — XPath Injection<br>OWASP A03:2021 — Injection</div></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Vulnérable (ici)</h2><div class="co">xpath = "//user[username=\'"+username+"\']"\n# apostrophe dans username → altère la requête</div></div></div><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Sécurisé (:5012)</h2><div class="co g">PATTERN = re.compile(r"^[a-zA-Z0-9_-]{1,32}$")\nif not PATTERN.match(username):\n    return error("Format invalide")\n# Seuls a-z 0-9 _ - sont autorisés\n# Aucune apostrophe possible → injection impossible</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2><table><tr><th>Entrée</th><th style="color:#f85149">:5011</th><th style="color:#3fb950">:5012</th></tr><tr><td>alice</td><td>OK</td><td>OK</td></tr><tr><td>\' or \'1\'=\'1</td><td style="color:#f85149">Tous les users</td><td style="color:#3fb950">Rejeté</td></tr></table></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Défense</h2><div class="bx s">Allowlist stricte: seuls a-z A-Z 0-9 _ - autorisés.<br>Aucun caractère XPath spécial ne peut passer.</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}function f(v){document.getElementById(\'fu\').value=v;document.getElementById(\'xp\').textContent="//user[username=\'"+v+"\']";}document.getElementById(\'fu\').addEventListener(\'input\',function(){document.getElementById(\'xp\').textContent="//user[username=\'"+this.value+"\']";});function doSearch(){const u=document.getElementById(\'fu\').value;fetch(\'/api/lookup?username=\'+encodeURIComponent(u)).then(r=>r.json().then(d=>({s:r.status,d}))).then(({s,d})=>{const el=document.getElementById(\'sr\');el.innerHTML=\'<div style="font-size:.79em;color:#8b949e">XPath: \'+d.xpath+\'</div>\';if(d.count===0){el.innerHTML+=\'<span style="color:#6e7681;font-size:.82em">Aucun résultat.</span>\';}else{d.users.forEach(u=>{el.innerHTML+=\'<div class="bx \'+(d.count>1?\'d\':\'i\')+\'">\'+u.username+\' (\'+u.role+\')</div>\';});}});}</script></body></html>'
 
-app = Flask(__name__)
-app.secret_key = "lab-xpath-vuln-key"
-
-# Lab XML data (all fictional)
-_XML_DATA = """<?xml version="1.0" encoding="UTF-8"?>
-<users>
-  <user id="1">
-    <username>alice</username>
-    <password>alice_lab_pass</password>
-    <role>user</role>
-    <email>alice@lab.local</email>
-  </user>
-  <user id="2">
-    <username>bob</username>
-    <password>bob_lab_pass</password>
-    <role>user</role>
-    <email>bob@lab.local</email>
-  </user>
-  <user id="3">
-    <username>admin</username>
-    <password>admin_lab_pass</password>
-    <role>admin</role>
-    <email>admin@lab.local</email>
-  </user>
-</users>
-"""
-
-_TREE = etree.fromstring(_XML_DATA.encode())
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>XPath Injection Lab — Vulnerable</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
-.ctf-box {{ background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin: 16px 0; border-radius: 4px; }}
-.result {{ background: #f8f9fa; border: 1px solid #ddd; padding: 16px; margin: 16px 0; border-radius: 4px; font-family: monospace; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 300px; }}
-button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> XPATH INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
-<h1>User Lookup (XML Database)</h1>
-<div class="ctf-box">
-<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Retrieve all users by manipulating the XPath query.
-<br>Hint: Try username <code>' or '1'='1</code>
-<br><strong>Objective:</strong> Get all users returned despite not knowing any password.
-</div>
-<form method="GET" action="/lookup">
-  <label>Username:</label><br>
-  <input type="text" name="username" value="{username}" placeholder="alice">
-  <button type="submit">Lookup</button>
-</form>
-<div class="result">
-<strong>XPath query:</strong> <code>//user[username='{username}']</code>
-<br><br>
-<strong>Results ({count}):</strong><br>{result}
-</div>
-<a href="/demo">Demo payloads</a>
-</body></html>"""
-
-
-def _query_vulnerable(username: str) -> tuple[list[dict], str]:
-    """VULNERABLE: string concatenation in XPath — no escaping."""
-    # VULNERABILITY: user input directly in XPath expression
-    xpath_expr = f"//user[username='{username}']"
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/lookup")
+def api_lookup()->Any:
+    u=request.args.get("username","")
+    qs="//user[username='"+u+"']"
     try:
-        nodes = _TREE.xpath(xpath_expr)
-        results = []
-        for node in nodes:
-            results.append({
-                "username": node.findtext("username", ""),
-                "role": node.findtext("role", ""),
-                "email": node.findtext("email", ""),
-            })
-    except etree.XPathEvalError:
-        results = []
-    return results, xpath_expr
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    return _PAGE.format(username="alice", count=0, result="Enter a username.")
-
-
-@app.route("/lookup", methods=["GET"])
-def lookup() -> Any:
-    username = request.args.get("username", "")
-    results, xpath_expr = _query_vulnerable(username)
-    result_html = ""
-    for u in results:
-        result_html += f"username={u['username']}, role={u['role']}, email={u['email']}<br>"
-    if not result_html:
-        result_html = "No results."
-    return _PAGE.format(
-        username=username,
-        count=len(results),
-        result=result_html,
-    )
-
-
-@app.route("/api/lookup", methods=["GET"])
-def api_lookup() -> Any:
-    username = request.args.get("username", "")
-    results, xpath_expr = _query_vulnerable(username)
-    return jsonify({"xpath": xpath_expr, "count": len(results), "users": results})
-
-
-@app.route("/demo")
-def demo() -> Any:
-    return """<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>XPath Demo</title>
-<style>body{font-family:monospace;max-width:900px;margin:40px auto;padding:0 20px;}
-code{background:#f4f4f4;padding:2px 6px;display:block;margin:4px 0;}
-</style></head><body>
-<h1>XPath Injection Demo Payloads</h1>
-<h2>Normal Query</h2>
-<code>GET /lookup?username=alice</code>
-<p>XPath: //user[username='alice'] → 1 result</p>
-<h2>Always-True Condition</h2>
-<code>GET /lookup?username=' or '1'='1</code>
-<p>XPath: //user[username='' or '1'='1'] → all users returned</p>
-<h2>Comment-out trick</h2>
-<code>GET /lookup?username=alice' or '1'='1</code>
-<p>XPath: //user[username='alice' or '1'='1'] → all users</p>
-<a href="/">Back</a>
-</body></html>"""
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+        nodes=_T.xpath(qs)
+    except:
+        return jsonify({"xpath":qs,"count":0,"users":[],"blocked":False})
+    res=[{"username":n.findtext("username",""),"role":n.findtext("role","")} for n in nodes]
+    return jsonify({"xpath":qs,"count":len(res),"users":res,"blocked":False})
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

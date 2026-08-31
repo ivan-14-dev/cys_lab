@@ -1,141 +1,28 @@
-"""
-LDAP Injection Lab — Vulnerable Version
-<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
-
-Demonstrates: LDAP filter injection via string concatenation
-CWE-90, OWASP A03:2021
-"""
+"""LDAP Injection Lab — Vulnerable | CWE-90"""
 from __future__ import annotations
-
-import os
+import os,re
 from typing import Any
+from flask import Flask,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-ldap-vuln-key"
+_USERS={"ivan":{"cn":"ivan","mail":"ivan@lab.local","role":"admin"},"alice":{"cn":"alice","mail":"alice@lab.local","role":"user"},"bob":{"cn":"bob","mail":"bob@lab.local","role":"user"}}
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>LDAP Injection</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn v"><i class="fa-solid fa-triangle-exclamation"></i> LDAP INJECTION — VULNÉRABLE <span>| Filtre sans échappement | CWE-90 | OWASP A03:2021 | Sécurisé: localhost:5010</span></div><div class="ctr"><h1>LDAP Injection — Recherche d\'annuaire</h1><div class="mt"><span class="bge br">Vulnérable</span><span class="bge bcwe">CWE-90</span><span class="bge bo">OWASP A03:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Payloads LDAP</h2><div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> Ces payloads modifient le <strong>filtre LDAP</strong> par injection de caractères spéciaux.</div><div class="pl"><div class="lb">1 — Recherche normale</div><div class="pc">alice</div><div class="pd">Retourne uniquement alice. Référence.</div><button class="btn btgr" onclick="f(\'alice\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Wildcard * (tous les users)</div><div class="pc">*</div><div class="pd">Le filtre (uid=*) retourne TOUS les utilisateurs de l\'annuaire.</div><button class="btn btgr" onclick="f(\'*\')"><i class="fa-solid fa-play"></i> Injecter</button></div><div class="pl"><div class="lb">3 — Contournement de filtre</div><div class="pc">*)(uid=*))(|(uid=*</div><div class="pd">Brise la logique du filtre LDAP. Retourne tous les utilisateurs.</div><button class="btn btgr" onclick="f(\'*)(uid=*))(|(uid=*\')"><i class="fa-solid fa-play"></i> Injecter</button></div><div class="pl"><div class="lb">4 — Utilisateur inexistant</div><div class="pc">charlie</div><div class="pd">Aucun résultat attendu.</div><button class="btn btgr" onclick="f(\'charlie\')"><i class="fa-solid fa-play"></i> Test</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-triangle-exclamation"></i> Recherche LDAP vulnérable</h2><div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> Le filtre LDAP est construit par <strong>concaténation de chaînes</strong> sans échappement.</div><div class="fg"><label>Nom d\'utilisateur à rechercher</label><input id="fu" value="alice" placeholder="alice, *, ou payload LDAP"></div><div style="font-size:.79em;color:#6e7681;margin-bottom:8px">Filtre construit : <code id="filter-preview">(uid=alice)</code></div><button class="btn btr" onclick="doSearch()"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button></div><div class="res" id="sr"><p style="color:#6e7681;font-size:.82em">Résultats ici...</p></div><div class="bx i" style="margin-top:8px"><i class="fa-solid fa-magnifying-glass"></i> Testez <code>*</code> → tous les utilisateurs retournés. Comparez avec <a href="http://localhost:5010" style="color:#58a6ff">localhost:5010</a>.</div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-circle-question"></i> LDAP Injection</h2><p>Le LDAP (Lightweight Directory Access Protocol) utilise des filtres de recherche. Quand l\'entrée utilisateur est intégrée sans échappement, les caractères spéciaux LDAP modifient la logique du filtre.</p><h2><i class="fa-solid fa-diagram-project"></i> Mécanisme</h2><div class="co">Filtre normal : (uid=alice)\nRésultat : 1 utilisateur\n\nAvec wildcard : (uid=*)\nRésultat : TOUS les utilisateurs\n\nAvec injection : (uid=*)(uid=*))(|(uid=*)\nFiltre altéré → retourne tous les entrées</div><h2><i class="fa-solid fa-bolt"></i> Caractères spéciaux LDAP</h2><table><tr><th>Char</th><th>Encodage sûr</th><th>Effet si injecté</th></tr><tr><td><code>*</code></td><td>\\2a</td><td>Wildcard → tous</td></tr><tr><td><code>(</code></td><td>\\28</td><td>Ouvre un filtre</td></tr><tr><td><code>)</code></td><td>\\29</td><td>Ferme un filtre</td></tr><tr><td><code>\\</code></td><td>\\5c</td><td>Escape character</td></tr><tr><td><code>\\x00</code></td><td>\\00</td><td>Null byte</td></tr></table></div></div><div><div class="cd"><h2><i class="fa-solid fa-bolt"></i> Impact</h2><div class="bx d"><ul><li>Énumération des utilisateurs</li><li>Bypass d\'authentification</li><li>Extraction de données d\'annuaire</li><li>Accès aux informations sensibles</li></ul></div><h2><i class="fa-solid fa-book-open"></i> Références</h2><div class="bx i">CWE-90 — LDAP Injection<br>OWASP A03:2021 — Injection<br>RFC 4515 — LDAP Filters</div></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Code vulnérable (ici)</h2><div class="co">username = request.args.get("username")\n\n# Filtre construit par concaténation\nldap_filter = f"(uid={username})"\n# Input * → (uid=*) → TOUS les users\n# Input *)(uid=*))(|(uid=* → filtre altéré</div></div></div><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Code sécurisé (:5010)</h2><div class="co g">def escape_ldap(value: str) -> str:\n    # RFC 4515 escaping\n    return value.replace("\\\\","\\\\5c").replace("*","\\\\2a").replace("(","\\\\28").replace(")","\\\\29").replace("\\x00","\\\\00")\n\nif not re.match(r"^[a-zA-Z0-9_-]{1,32}$", username):\n    return error("Format invalide")\n\nescaped = escape_ldap(username)\nldap_filter = f"(uid={escaped})"</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2><table><tr><th>Entrée</th><th style="color:#f85149">:5009</th><th style="color:#3fb950">:5010</th></tr><tr><td><code>alice</code></td><td>1 résultat</td><td>1 résultat</td></tr><tr><td><code>*</code></td><td style="color:#f85149">Tous les users</td><td style="color:#3fb950">Rejeté (validation)</td></tr><tr><td><code>*)(uid=*</code></td><td style="color:#f85149">Filtre altéré</td><td style="color:#3fb950">Rejeté</td></tr></table></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Défense</h2><div class="bx s">1. Valider par allowlist (lettres/chiffres/- seulement)<br>2. Encoder les caractères spéciaux LDAP selon RFC 4515<br>* → \\2a  ( → \\28  ) → \\29</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}function f(v){document.getElementById(\'fu\').value=v;document.getElementById(\'filter-preview\').textContent=\'(uid=\'+v+\')\';}document.getElementById(\'fu\').addEventListener(\'input\',function(){document.getElementById(\'filter-preview\').textContent=\'(uid=\'+this.value+\')\';});function doSearch(){  const u=document.getElementById(\'fu\').value;  fetch(\'/api/search?username=\'+encodeURIComponent(u))    .then(r=>r.json()).then(d=>{      const el=document.getElementById(\'sr\');      el.innerHTML=\'<div style="font-size:.79em;color:#8b949e">Filtre: \'+d.filter+\'</div><div style="margin-top:6px">\';      if(d.count===0){el.innerHTML+=\'<span style="color:#6e7681">Aucun résultat.</span>\';}      else{d.users.forEach(u=>{el.innerHTML+=\'<div class="bx \'+(d.count>1?\'d\':\'i\')+\'">\'+u+\'</div>\';});}      el.innerHTML+=\'</div>\';    });}</script></body></html>'
 
-from flask import Flask, jsonify, request
-
-app = Flask(__name__)
-app.secret_key = "lab-ldap-vuln-key"
-
-# Simulated LDAP directory — used for unit tests (no real LDAP required)
-_LDAP_USERS = {
-    "ivan": {"cn": "ivan", "sn": "Lab User", "mail": "ivan@lab.local", "role": "admin"},
-    "alice": {"cn": "alice", "sn": "Alice Test", "mail": "alice@lab.local", "role": "user"},
-    "bob": {"cn": "bob", "sn": "Bob Test", "mail": "bob@lab.local", "role": "user"},
-}
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>LDAP Injection Lab — Vulnerable</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
-.ctf-box {{ background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin: 16px 0; border-radius: 4px; }}
-.result {{ background: #f8f9fa; border: 1px solid #ddd; padding: 16px; margin: 16px 0; border-radius: 4px; font-family: monospace; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 300px; }}
-button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> LDAP INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
-<h1>LDAP Directory Search</h1>
-<div class="ctf-box">
-<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Modify the LDAP filter to retrieve all users.
-<br>Hint: Try username <code>*)(uid=*))(|(uid=*</code>
-<br><strong>Objective:</strong> Retrieve all users instead of just one.
-</div>
-<form method="GET" action="/search">
-  <label>Search username:</label><br>
-  <input type="text" name="username" value="{username}" placeholder="e.g. alice">
-  <button type="submit">Search</button>
-</form>
-<div class="result">
-<strong>LDAP Filter used:</strong> <code>(uid={username})</code>
-<br><br>
-<strong>Results:</strong><br>{result}
-</div>
-<p><a href="/demo">View demo payloads</a></p>
-</body></html>"""
-
-_DEMO = """<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>LDAP Demo</title>
-<style>body{{font-family:monospace;max-width:900px;margin:40px auto;padding:0 20px;}}
-code{{background:#f4f4f4;padding:2px 6px;display:block;margin:4px 0;}}
-</style></head><body>
-<h1>LDAP Injection Demo Payloads</h1>
-<h2>Normal Search</h2>
-<code>GET /search?username=alice</code>
-<p>Filter: (uid=alice) → returns alice's record</p>
-<h2>Wildcard — Returns all users</h2>
-<code>GET /search?username=*</code>
-<p>Filter: (uid=*) → returns all entries</p>
-<h2>Filter Escape — Enumerate all</h2>
-<code>GET /search?username=*)(uid=*))(|(uid=*</code>
-<p>Filter becomes: (uid=*)(uid=*))(|(uid=*)) → logic bypassed</p>
-<h2>How it works</h2>
-<p>The filter <code>(uid={input})</code> becomes <code>(uid=*)(uid=*))(|(uid=*)</code>
-when the attacker injects special LDAP characters. The LDAP server may interpret
-this as multiple conditions or return unexpected results.</p>
-<a href="/">Back</a>
-</body></html>"""
-
-
-def _search_vulnerable(username: str) -> list[dict]:
-    """VULNERABLE: string concatenation in LDAP filter — simulated."""
-    # Constructed filter (shown to user and used for search)
-    ldap_filter = f"(uid={username})"  # VULNERABLE: no escaping
-
-    # Simulate LDAP wildcard and injection effects
-    results = []
-    if username == "*":
-        results = list(_LDAP_USERS.values())
-    elif "*" in username or ")" in username or "(" in username:
-        # Injection detected — return all (simulating filter bypass)
-        results = list(_LDAP_USERS.values())
-    elif username in _LDAP_USERS:
-        results = [_LDAP_USERS[username]]
-
-    return results, ldap_filter
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    return _PAGE.format(username="alice", result="Enter a username to search.")
-
-
-@app.route("/search", methods=["GET"])
-def search() -> Any:
-    username = request.args.get("username", "")
-    results, ldap_filter = _search_vulnerable(username)
-
-    result_str = ""
-    if results:
-        for u in results:
-            result_str += f"cn={u['cn']}, mail={u['mail']}, role={u['role']}<br>"
+def _query(username):
+    ldap_filter=f"(uid={username})"
+    if username=="*" or "(" in username or ")" in username:
+        res=list(_USERS.values())
+    elif username in _USERS:
+        res=[_USERS[username]]
     else:
-        result_str = "No results found."
-
-    return _PAGE.format(
-        username=username,
-        result=result_str,
-    ).replace(f"(uid={username})", ldap_filter)
-
-
-@app.route("/api/search", methods=["GET"])
-def api_search() -> Any:
-    username = request.args.get("username", "")
-    results, ldap_filter = _search_vulnerable(username)
-    return jsonify({
-        "filter": ldap_filter,
-        "count": len(results),
-        "users": [r["cn"] for r in results],
-    })
-
-
-@app.route("/demo")
-def demo() -> Any:
-    return _DEMO
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+        res=[]
+    return res,ldap_filter
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/search")
+def api_search()->Any:
+    u=request.args.get("username","")
+    res,f=_query(u)
+    return jsonify({"filter":f,"count":len(res),"users":[r["cn"] for r in res]})
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

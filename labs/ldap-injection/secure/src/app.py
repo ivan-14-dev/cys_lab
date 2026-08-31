@@ -1,147 +1,25 @@
-"""
-LDAP Injection Lab — Secure Version
-<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
-
-Defenses applied:
-- LDAP special character escaping
-- Allowlist validation
-- Input length limit
-"""
+"""LDAP Injection Lab — Secure | CWE-90"""
 from __future__ import annotations
-
-import os
-import re
+import os,re
 from typing import Any
+from flask import Flask,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-ldap-secure-key"
+_PATTERN=re.compile(r"^[a-zA-Z0-9_-]{1,32}$")
+_USERS={"ivan":{"cn":"ivan","mail":"ivan@lab.local","role":"admin"},"alice":{"cn":"alice","mail":"alice@lab.local","role":"user"},"bob":{"cn":"bob","mail":"bob@lab.local","role":"user"}}
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>LDAP Injection Sécurisé</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn s"><i class="fa-solid fa-circle-check"></i> LDAP INJECTION SÉCURISÉ — SÉCURISÉ <span>| Allowlist + RFC 4515 escaping | CWE-90 | Vulnérable: localhost:5009</span></div><div class="ctr"><h1>LDAP Injection — Sécurisé</h1><div class="mt"><span class="bge bgrn">Sécurisé</span><span class="bge bcwe">CWE-90</span><span class="bge bo">OWASP A03:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Testez les payloads</h2><div class="bx s"><i class="fa-solid fa-circle-check"></i> Les caractères spéciaux LDAP sont <strong>encodés</strong> ou le format est <strong>validé</strong> avant toute requête.</div><div class="pl"><div class="lb">1 — Recherche normale</div><div class="pc">alice</div><div class="pd">Doit fonctionner normalement.</div><button class="btn btgr" onclick="f(\'alice\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Wildcard * (bloqué)</div><div class="pc">*</div><div class="pd">Rejeté par validation (caractère non autorisé).</div><button class="btn btgr" onclick="f(\'*\')"><i class="fa-solid fa-play"></i> Tester</button></div><div class="pl"><div class="lb">3 — Injection (bloqué)</div><div class="pc">*)(uid=*</div><div class="pd">Rejeté — validation allowlist.</div><button class="btn btgr" onclick="f(\'*)(uid=*\')"><i class="fa-solid fa-play"></i> Tester</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Recherche LDAP sécurisée</h2><div class="bx s"><i class="fa-solid fa-shield-halved"></i> <strong>Défenses :</strong> Allowlist pattern | Échappement RFC 4515 | Longueur max</div><div class="fg"><label>Nom d\'utilisateur (lettres/chiffres/tiret uniquement)</label><input id="fu" value="alice" placeholder="alice"></div><div style="font-size:.79em;color:#6e7681;margin-bottom:8px">Filtre encodé : <code id="fp">(uid=alice)</code></div><button class="btn btg" onclick="doSearch()"><i class="fa-solid fa-magnifying-glass"></i> Rechercher</button></div><div class="res" id="sr"><p style="color:#6e7681;font-size:.82em">Résultats ici...</p></div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-shield-halved"></i> Défense</h2><p>Deux niveaux de protection :</p><p><strong>1. Validation par allowlist</strong></p><div class="co g">import re\nPATTERN = re.compile(r"^[a-zA-Z0-9_-]{1,32}$")\nif not PATTERN.match(username):\n    return error("Format invalide")</div><p><strong>2. Encodage RFC 4515</strong></p><div class="co g">def escape_ldap(v):\n    return (v.replace("\\\\","\\\\5c").replace("*","\\\\2a")\n              .replace("(","\\\\28").replace(")","\\\\29")\n              .replace("\\x00","\\\\00"))</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-list-check"></i> Comparaison défense/attaque</h2><table><tr><th>Input</th><th>Encodé (sûr)</th></tr><tr><td><code>alice</code></td><td><code>alice</code> (inchangé)</td></tr><tr><td><code>*</code></td><td><code>\\2a</code> (neutralisé)</td></tr><tr><td><code>(uid=*)</code></td><td><code>\\28uid=\\2a\\29</code></td></tr></table></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Code sécurisé</h2><div class="co g">import re\n\n_PATTERN = re.compile(r"^[a-zA-Z0-9_-]{1,32}$")\n\ndef _escape_ldap(v: str) -> str:\n    replacements = {"\\\\":"\\\\5c","*":"\\\\2a","(":"\\\\28",")":"\\\\29","\\x00":"\\\\00"}\n    for k,r in replacements.items():\n        v = v.replace(k,r)\n    return v\n\nif not _PATTERN.match(username):\n    return error("Format invalide")\n\nescaped = _escape_ldap(username)\nldap_filter = f"(uid={escaped})"</div></div></div><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Code vulnérable (:5009)</h2><div class="co">username = request.args.get("username")\nldap_filter = f"(uid={username})"\n# Aucun échappement → injection possible</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2><table><tr><th>Entrée</th><th style="color:#f85149">:5009</th><th style="color:#3fb950">Ici</th></tr><tr><td><code>alice</code></td><td>OK</td><td>OK</td></tr><tr><td><code>*</code></td><td style="color:#f85149">Tous les users</td><td style="color:#3fb950">Rejeté</td></tr><tr><td><code>*)(uid=*</code></td><td style="color:#f85149">Filtre altéré</td><td style="color:#3fb950">Rejeté</td></tr></table></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Résumé</h2><div class="bx s">Validation allowlist + encodage RFC 4515 = protection complète.<br>L\'échappement convertit * en \\2a, rendant l\'injection impossible.</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}function f(v){document.getElementById(\'fu\').value=v;}function doSearch(){  const u=document.getElementById(\'fu\').value;  fetch(\'/api/search?username=\'+encodeURIComponent(u))    .then(r=>r.json().then(d=>({s:r.status,d}))).then(({s,d})=>{      const el=document.getElementById(\'sr\');      if(d.blocked){el.innerHTML=\'<div class="bx s">[BLOQUÉ] \'+d.error+\'</div>\';}      else if(d.count===0){el.innerHTML=\'<div style="color:#6e7681;font-size:.82em">Aucun résultat. Filtre: \'+d.filter+\'</div>\';}      else{el.innerHTML=\'<div style="font-size:.79em;color:#8b949e">Filtre: \'+d.filter+\'</div>\';d.users.forEach(u=>{el.innerHTML+=\'<div class="bx i">\'+u+\'</div>\';});}    });}</script></body></html>'
 
-from flask import Flask, jsonify, request
-
-app = Flask(__name__)
-app.secret_key = "lab-ldap-secure-key"
-
-_LDAP_USERS = {
-    "ivan": {"cn": "ivan", "sn": "Lab User", "mail": "ivan@lab.local", "role": "admin"},
-    "alice": {"cn": "alice", "sn": "Alice Test", "mail": "alice@lab.local", "role": "user"},
-    "bob": {"cn": "bob", "sn": "Bob Test", "mail": "bob@lab.local", "role": "user"},
-}
-
-# LDAP special characters that must be escaped
-_LDAP_SPECIAL = re.compile(r'[\\*()\x00]')
-_USERNAME_PATTERN = re.compile(r'^[a-zA-Z0-9_\-]{1,32}$')
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>LDAP Injection Lab — Secure</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
-.defense-box {{ background: #d4edda; border: 1px solid #28a745; padding: 12px; margin: 16px 0; border-radius: 4px; }}
-.result {{ background: #f8f9fa; border: 1px solid #ddd; padding: 16px; margin: 16px 0; border-radius: 4px; font-family: monospace; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 300px; }}
-button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> LDAP INJECTION LAB — SECURE — Filter Escaping Applied</div>
-<h1>LDAP Directory Search</h1>
-<div class="defense-box">
-<strong><i class="fa-solid fa-shield-halved"></i> Defenses active:</strong> LDAP special char escaping | Username allowlist | Length limit
-<br><small>Try injecting <code>*</code> or <code>*)(uid=*)</code> — they will be escaped.</small>
-</div>
-<form method="GET" action="/search">
-  <label>Search username:</label><br>
-  <input type="text" name="username" value="{username}" placeholder="e.g. alice">
-  <button type="submit">Search</button>
-</form>
-<div class="result">
-<strong>Escaped filter used:</strong> <code>{ldap_filter}</code>
-<br><br>
-<strong>Results:</strong><br>{result}
-</div>
-</body></html>"""
-
-
-def _escape_ldap_filter(value: str) -> str:
-    """Escape LDAP special characters — RFC 4515."""
-    replacements = {
-        '\\': r'\5c',
-        '*': r'\2a',
-        '(': r'\28',
-        ')': r'\29',
-        '\x00': r'\00',
-    }
-    for char, escaped in replacements.items():
-        value = value.replace(char, escaped)
-    return value
-
-
-def _validate_username(username: str) -> str | None:
-    """Returns error or None if valid."""
-    if not username:
-        return "Username is required."
-    if len(username) > 32:
-        return "Username too long."
-    if not _USERNAME_PATTERN.match(username):
-        return "Username contains invalid characters (only letters, numbers, - _ allowed)."
-    return None
-
-
-def _search_secure(username: str) -> tuple[list[dict], str, str | None]:
-    """SECURE: validates and escapes before constructing filter."""
-    error = _validate_username(username)
-    if error:
-        return [], "", error
-
-    # SECURE: escape before use in filter
-    escaped = _escape_ldap_filter(username)
-    ldap_filter = f"(uid={escaped})"
-
-    # Exact match only (no wildcards possible after escaping)
-    results = [_LDAP_USERS[username]] if username in _LDAP_USERS else []
-    return results, ldap_filter, None
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    return _PAGE.format(username="alice", ldap_filter="(uid=alice)", result="Enter a username.")
-
-
-@app.route("/search", methods=["GET"])
-def search() -> Any:
-    username = request.args.get("username", "")
-    results, ldap_filter, error = _search_secure(username)
-
-    if error:
-        return _PAGE.format(
-            username=username,
-            ldap_filter=f"[BLOCKED: {error}]",
-            result=f"<span style='color:red'>Rejected: {error}</span>",
-        ), 400
-
-    result_str = ""
-    if results:
-        for u in results:
-            result_str += f"cn={u['cn']}, mail={u['mail']}, role={u['role']}<br>"
-    else:
-        result_str = "No results found."
-
-    return _PAGE.format(username=username, ldap_filter=ldap_filter, result=result_str)
-
-
-@app.route("/api/search", methods=["GET"])
-def api_search() -> Any:
-    username = request.args.get("username", "")
-    results, ldap_filter, error = _search_secure(username)
-    if error:
-        return jsonify({"error": error, "blocked": True}), 400
-    return jsonify({
-        "filter": ldap_filter,
-        "count": len(results),
-        "users": [r["cn"] for r in results],
-        "blocked": False,
-    })
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+def _escape(v):
+    for k,r in [("\\","\\5c"),("*","\\2a"),("(","\\28"),(")","\\29"),("\x00","\\00")]: v=v.replace(k,r)
+    return v
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/search")
+def api_search()->Any:
+    u=request.args.get("username","")
+    if not _PATTERN.match(u):return jsonify({"error":"Format invalide (autorisés: a-z A-Z 0-9 _ -)","blocked":True}),400
+    esc=_escape(u)
+    res=[_USERS[u]] if u in _USERS else []
+    return jsonify({"filter":f"(uid={esc})","count":len(res),"users":[r["cn"] for r in res],"blocked":False})
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

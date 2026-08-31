@@ -1,102 +1,22 @@
-"""
-Header Injection / CRLF Lab — Secure Version
-<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
-
-Defenses applied:
-- CRLF character stripping from all header values
-- Allowlist validation for header values
-- Reject values containing control characters
-"""
+"""Header/CRLF Injection Lab — Secure | CWE-113"""
 from __future__ import annotations
-
 import os
-import re
 from typing import Any
+from flask import Flask,Response,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-header-secure"
+_ALLOWED=frozenset({"en","fr","de","es","it","pt","nl","ja","zh"})
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Header/CRLF Injection Sécurisé</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn s"><i class="fa-solid fa-circle-check"></i> HEADER/CRLF INJECTION SÉCURISÉ — SÉCURISÉ <span>| CRLF rejection + Allowlist | CWE-113 | Vulnérable: localhost:5017</span></div><div class="ctr"><h1>Header / CRLF Injection — Sécurisé</h1><div class="mt"><span class="bge bgrn">Sécurisé</span><span class="bge bcwe">CWE-113</span><span class="bge bo">OWASP A03:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Testez les payloads</h2><div class="bx s"><i class="fa-solid fa-circle-check"></i> CRLF détectés et rejetés. Allowlist stricte.</div><div class="pl"><div class="lb">1 — Normal</div><div class="pc">en</div><button class="btn btgr" onclick="f(\'en\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — CRLF (bloqué)</div><div class="pc">en%0d%0aX-Injected:evil</div><button class="btn btgr" onclick="f(\'en%0d%0aX-Injected:evil\')"><i class="fa-solid fa-play"></i> Tester</button></div><div class="pl"><div class="lb">3 — Valeur invalide (bloqué)</div><div class="pc">hacker_lang</div><button class="btn btgr" onclick="f(\'hacker_lang\')"><i class="fa-solid fa-play"></i> Tester</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> API sécurisée</h2><div class="bx s"><i class="fa-solid fa-shield-halved"></i> CRLF rejeté + allowlist (en, fr, de, es, it, pt).</div><div class="fg"><label>Langue (autorisées: en fr de es it pt)</label><input id="fl" value="en"></div><button class="btn btg" onclick="doSetLang()"><i class="fa-solid fa-globe"></i> Définir langue</button></div><div class="res" id="hr"><p style="color:#6e7681;font-size:.82em">Résultat ici...</p></div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-shield-halved"></i> Défense</h2><div class="co g">ALLOWED = frozenset({"en","fr","de","es","it","pt"})\n\nlang = request.args.get("lang", "")\n\n# Étape 1: Rejeter CRLF\nif "\\r" in lang or "\\n" in lang or "\\x00" in lang:\n    return error("Caractères de contrôle non autorisés")\n\n# Étape 2: Allowlist\nif lang not in ALLOWED:\n    return error(f"Langue inconnue: {lang}")\n\nresp.headers["X-Language"] = lang</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-list-check"></i> Règles</h2><ul><li>Toujours rejeter \\r et \\n dans les valeurs de header</li><li>Utiliser une allowlist stricte</li><li>Valider côté serveur, pas seulement côté client</li></ul></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Sécurisé (ici)</h2><div class="co g">ALLOWED = frozenset({"en","fr","de","es","it","pt"})\n\nif "\\r" in lang or "\\n" in lang:\n    return error(400)\n\nif lang not in ALLOWED:\n    return error(400)\n\nresp.headers["X-Language"] = lang</div></div></div><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Vulnérable (:5017)</h2><div class="co">resp.headers["X-Language"] = lang\n# Aucune validation → CRLF accepté</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Résumé</h2><div class="bx s">Rejeter explicitement \\r et \\n.<br>Allowlist des valeurs autorisées.<br>Les deux ensemble = protection complète.</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}function f(v){document.getElementById(\'fl\').value=v;}function doSetLang(){  const lang=document.getElementById(\'fl\').value;  fetch(\'/api/set-lang?lang=\'+encodeURIComponent(lang)).then(r=>r.json().then(d=>({s:r.status,d}))).then(({s,d})=>{    const el=document.getElementById(\'hr\');    if(d.blocked){el.innerHTML=\'<div class="bx s">[BLOQUÉ] \'+d.error+\'</div>\';}    else{el.innerHTML=\'<div class="bx i">Langue définie: \'+d.lang+\'</div>\';}  });}</script></body></html>'
 
-from flask import Flask, Response, jsonify, request
-
-app = Flask(__name__)
-app.secret_key = "lab-header-secure-key"
-
-_ALLOWED_LANGS = frozenset({"en", "fr", "de", "es", "it", "pt", "nl", "ja", "zh"})
-_HEADER_VALUE_RE = re.compile(r'^[a-zA-Z0-9\-_]{1,32}$')
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Header Injection Lab — Secure</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
-.defense-box {{ background: #d4edda; border: 1px solid #28a745; padding: 12px; margin: 16px 0; }}
-pre {{ background: #f4f4f4; padding: 12px; border-radius: 4px; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 400px; }}
-button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> HEADER INJECTION LAB — SECURE — CRLF Stripping Applied</div>
-<h1>User Preferences API</h1>
-<div class="defense-box">
-<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> CRLF stripping | Allowlist | Control char rejection
-<br><small>Allowed langs: en, fr, de, es, it, pt, nl, ja, zh</small>
-</div>
-<form method="GET" action="/set-lang">
-  <label>Language preference:</label><br>
-  <input type="text" name="lang" value="en" placeholder="e.g. en">
-  <button type="submit">Set Language</button>
-</form>
-<pre>{result}</pre>
-</body></html>"""
-
-
-def _sanitize_header_value(value: str) -> tuple[str, str | None]:
-    """Strip CRLF and validate — returns (safe_value, error_or_None)."""
-    if "\r" in value or "\n" in value or "\x00" in value:
-        return "", "Header value contains illegal control characters (CRLF/null)."
-    if value not in _ALLOWED_LANGS:
-        return "", f"Language '{value}' is not in the allowed list."
-    return value, None
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    return _PAGE.format(result="Set a language preference above.")
-
-
-@app.route("/set-lang", methods=["GET"])
-def set_lang() -> Any:
-    raw_lang = request.args.get("lang", "en")
-    safe_lang, error = _sanitize_header_value(raw_lang)
-    if error:
-        resp = Response(
-            _PAGE.format(result=f"[BLOCKED] {error}"),
-            mimetype="text/html",
-            status=400,
-        )
-        return resp
-    resp = Response(
-        _PAGE.format(result=f"Language set to: {safe_lang}"),
-        mimetype="text/html",
-    )
-    resp.headers["X-Language"] = safe_lang
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/set-lang")
+def api_set_lang()->Any:
+    lang=request.args.get("lang","en")
+    if "\r" in lang or "\n" in lang or "\x00" in lang:return jsonify({"error":"Caractères de contrôle CRLF non autorisés","blocked":True}),400
+    if lang not in _ALLOWED:return jsonify({"error":f"Langue inconnue (autorisées: {sorted(_ALLOWED)})","blocked":True}),400
+    resp=Response(jsonify({"lang":lang,"blocked":False}).get_data(),mimetype="application/json")
+    resp.headers["X-Language"]=lang
     return resp
-
-
-@app.route("/api/set-lang", methods=["GET"])
-def api_set_lang() -> Any:
-    raw_lang = request.args.get("lang", "en")
-    safe_lang, error = _sanitize_header_value(raw_lang)
-    if error:
-        return jsonify({"error": error, "blocked": True}), 400
-    resp = Response(
-        jsonify({"lang": safe_lang, "blocked": False}).get_data(),
-        mimetype="application/json",
-    )
-    resp.headers["X-Language"] = safe_lang
-    return resp
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

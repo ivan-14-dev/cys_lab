@@ -1,141 +1,23 @@
-"""
-CSV Injection Lab — Vulnerable Version
-<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
-
-Demonstrates: Formula injection in CSV exports
-CWE-1236, OWASP A03:2021
-"""
+"""CSV Injection Lab — Vulnerable | CWE-1236"""
 from __future__ import annotations
-
-import csv
-import io
-import os
+import csv,io,os
 from typing import Any
+from flask import Flask,Response,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-csv-vuln"
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>CSV Injection</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input,.fg textarea{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn v"><i class="fa-solid fa-triangle-exclamation"></i> CSV INJECTION — VULNÉRABLE <span>| Formules non sanitisées | CWE-1236 | OWASP A03:2021 | Sécurisé: localhost:5014</span></div><div class="ctr"><h1>CSV Injection — Export de contacts</h1><div class="mt"><span class="bge br">Vulnérable</span><span class="bge bcwe">CWE-1236</span><span class="bge bo">OWASP A03:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Payloads CSV</h2><div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> Ces valeurs déclenchent l\'exécution de <strong>formules dans les tableurs</strong> (Excel, LibreOffice).</div><div class="pl"><div class="lb">1 — Entrée normale</div><div class="pc">Alice Martin / alice@lab.local / LabCorp</div><button class="btn btgr" onclick="setEntry(\'Alice Martin\',\'alice@lab.local\',\'LabCorp\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Formule =SUM</div><div class="pc">=SUM(1+1)*10 comme Nom</div><div class="pd">Si ouvert dans Excel: la formule calcule 20 au lieu d\'afficher le texte.</div><button class="btn btgr" onclick="setEntry(\'=SUM(1+1)*10\',\'inject@lab.local\',\'InjCorp\')"><i class="fa-solid fa-play"></i> Injecter</button></div><div class="pl"><div class="lb">3 — Formule +CMD</div><div class="pc">+INJECTION_CSV comme Nom</div><div class="pd">Le + initial déclenche aussi l\'interprétation de formule.</div><button class="btn btgr" onclick="setEntry(\'+INJECTION_CSV\',\'cmd@lab.local\',\'Test\')"><i class="fa-solid fa-play"></i> Injecter</button></div><div class="pl"><div class="lb">4 — Formule @</div><div class="pc">@SUM(A1:A10)</div><button class="btn btgr" onclick="setEntry(\'@SUM(A1:A10)\',\'at@lab.local\',\'Test\')"><i class="fa-solid fa-play"></i> Injecter</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-triangle-exclamation"></i> Exportation CSV vulnérable</h2><div class="bx d">Les valeurs sont écrites <strong>sans sanitisation</strong> dans le CSV. Les formules restent actives.</div><div class="fg"><label>Nom</label><input id="fn" value="Alice Martin"></div><div class="fg"><label>Email</label><input id="fe" value="alice@lab.local"></div><div class="fg"><label>Entreprise</label><input id="fc" value="LabCorp"></div><button class="btn btgr" onclick="addEntry()"><i class="fa-solid fa-plus"></i> Ajouter</button><button class="btn btr" style="margin-left:8px" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Exporter CSV</button><button class="btn btgr" onclick="clearAll()"><i class="fa-solid fa-trash"></i> Effacer</button></div><div class="res" id="sr"><p style="color:#6e7681;font-size:.82em">Entrées ici...</p></div><div class="bx i" style="margin-top:8px"><i class="fa-solid fa-eye"></i> Après export, ouvrez le CSV avec un éditeur texte : vous verrez les formules non sanitisées. Comparez avec <a href="http://localhost:5014" style="color:#58a6ff">localhost:5014</a>.</div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-circle-question"></i> CSV Injection</h2><p>Les tableurs (Excel, LibreOffice Calc) interprètent comme des formules toute cellule commençant par <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>.</p><p>Quand une application exporte des données utilisateur en CSV sans sanitisation, ces formules sont exécutées quand la victime ouvre le fichier.</p><div class="co">Cellule CSV : =SUM(1+1)*10\nTableur : EXÉCUTE la formule → 20\n\nCellule CSV : =HYPERLINK("http://evil.com","Click")\nTableur : Affiche un lien cliquable vers evil.com</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-bolt"></i> Impact</h2><div class="bx d"><ul><li>Exécution de formules dans le tableur victime</li><li>Accès aux fichiers locaux via DDE</li><li>Phishing via HYPERLINK</li><li>Exfiltration de données via appels HTTP</li></ul></div><div class="bx i">CWE-1236 — Improper Neutralization of Formula Elements in a CSV File<br>OWASP A03:2021 — Injection</div></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Vulnérable (ici)</h2><div class="co">writer.writerow([name, email, company])\n# Si name = "=SUM(1+1)*10"\n# → la cellule CSV contient la formule brute\n# → Excel l\'exécute à l\'ouverture</div></div></div><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Sécurisé (:5014)</h2><div class="co g">FORMULA_STARTERS = ("=", "+", "-", "@")\n\ndef sanitize(value: str) -> str:\n    if value and value[0] in FORMULA_STARTERS:\n        return "\\t" + value  # Tab neutralise la formule\n    return value.replace("\\r","").replace("\\n"," ")\n\nwriter.writerow([sanitize(n), sanitize(e), sanitize(c)])</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2><table><tr><th>Entrée</th><th style="color:#f85149">:5013</th><th style="color:#3fb950">:5014</th></tr><tr><td>Alice Martin</td><td>Alice Martin</td><td>Alice Martin</td></tr><tr><td>=SUM(1+1)</td><td style="color:#f85149">Formule active</td><td style="color:#3fb950">\\t=SUM(1+1) (neutralisé)</td></tr><tr><td>+INJECTION</td><td style="color:#f85149">Formule active</td><td style="color:#3fb950">\\t+INJECTION</td></tr></table></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Défense</h2><div class="bx s">Préfixer les formules avec un tab ou une apostrophe.<br>= + - @ en début de cellule → neutre avec tab préfixé.<br>Alternative: forcer un type string dans le tableur.</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}var entries=[{name:\'Alice Martin\',email:\'alice@lab.local\',company:\'LabCorp\'}];function setEntry(n,e,c){document.getElementById(\'fn\').value=n;document.getElementById(\'fe\').value=e;document.getElementById(\'fc\').value=c;}function addEntry(){entries.push({name:document.getElementById(\'fn\').value,email:document.getElementById(\'fe\').value,company:document.getElementById(\'fc\').value});renderEntries();}function clearAll(){entries=[];renderEntries();}function renderEntries(){const el=document.getElementById(\'sr\');if(!entries.length){el.innerHTML=\'<p style="color:#6e7681;font-size:.82em">Aucune entrée.</p>\';return;}el.innerHTML=entries.map(e=>\'<div class="bx i">\'+e.name+\' | \'+e.email+\' | \'+e.company+\'</div>\').join(\'\');}function exportCSV(){  let csv=\'Nom,Email,Entreprise\\n\';  entries.forEach(e=>{csv+=JSON.stringify(e.name).slice(1,-1)+\',\'+JSON.stringify(e.email).slice(1,-1)+\',\'+JSON.stringify(e.company).slice(1,-1)+\'\\n\';});  fetch(\'/api/export\',{method:\'POST\',headers:{\'Content-Type\':\'application/json\'},body:JSON.stringify({entries})}).then(r=>r.blob()).then(b=>{const a=document.createElement(\'a\');a.href=URL.createObjectURL(b);a.download=\'contacts_vulnerable.csv\';a.click();});}renderEntries();</script></body></html>'
 
-from flask import Flask, Response, jsonify, redirect, request
-
-app = Flask(__name__)
-app.secret_key = "lab-csv-vuln-key"
-
-_ENTRIES: list[dict[str, str]] = [
-    {"name": "Alice Martin", "email": "alice@lab.local", "company": "LabCorp"},
-    {"name": "Bob Test", "email": "bob@lab.local", "company": "TestInc"},
-]
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>CSV Injection Lab — Vulnerable</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
-.ctf-box {{ background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin: 16px 0; border-radius: 4px; }}
-table {{ border-collapse: collapse; width: 100%; }}
-th, td {{ border: 1px solid #ddd; padding: 8px; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 250px; }}
-button {{ background: #dc3545; color: white; padding: 8px 16px; border: none; cursor: pointer; margin: 4px; }}
-.btn-green {{ background: #28a745; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> CSV INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
-<h1>Contact Export</h1>
-<div class="ctf-box">
-<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Add an entry with a spreadsheet formula in the Name field.
-<br>Hint: Name = <code>=SUM(1+1)*10</code> or <code>+LAB_INJECTION_DETECTED</code>
-<br><strong>Objective:</strong> Export CSV and verify the formula appears unescaped.
-</div>
-
-<form method="POST" action="/add">
-  <input type="text" name="name" placeholder="Name">
-  <input type="text" name="email" placeholder="Email">
-  <input type="text" name="company" placeholder="Company">
-  <button type="submit">Add Entry</button>
-  <a href="/export"><button type="button" class="btn-green">Export CSV</button></a>
-</form>
-
-<table>
-<tr><th>Name</th><th>Email</th><th>Company</th></tr>
-{rows}
-</table>
-</body></html>"""
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    rows = "".join(
-        f"<tr><td>{e['name']}</td><td>{e['email']}</td><td>{e['company']}</td></tr>"
-        for e in _ENTRIES
-    )
-    return _PAGE.format(rows=rows)
-
-
-@app.route("/add", methods=["POST"])
-def add_entry() -> Any:
-    # VULNERABLE: raw values stored and exported without sanitization
-    _ENTRIES.append({
-        "name": request.form.get("name", ""),
-        "email": request.form.get("email", ""),
-        "company": request.form.get("company", ""),
-    })
-    return redirect("/")
-
-
-@app.route("/export")
-def export_csv() -> Any:
-    """VULNERABLE: CSV written with raw values — formulas not sanitized."""
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Name", "Email", "Company"])
-    for entry in _ENTRIES:
-        # VULNERABILITY: values not escaped — formula cells remain active
-        writer.writerow([entry["name"], entry["email"], entry["company"]])
-    csv_content = output.getvalue()
-    return Response(
-        csv_content,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=contacts_vulnerable.csv"},
-    )
-
-
-@app.route("/api/add", methods=["POST"])
-def api_add() -> Any:
-    data = request.get_json(force=True, silent=True) or {}
-    entry = {
-        "name": str(data.get("name", "")),
-        "email": str(data.get("email", "")),
-        "company": str(data.get("company", "")),
-    }
-    _ENTRIES.append(entry)
-    return jsonify({"status": "ok", "entry": entry})
-
-
-@app.route("/api/entries")
-def api_entries() -> Any:
-    return jsonify(_ENTRIES)
-
-
-@app.route("/api/csv")
-def api_csv() -> Any:
-    """Returns CSV content as string for testing."""
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Name", "Email", "Company"])
-    for entry in _ENTRIES:
-        writer.writerow([entry["name"], entry["email"], entry["company"]])
-    return jsonify({"csv": output.getvalue()})
-
-
-@app.route("/reset")
-def reset() -> Any:
-    _ENTRIES.clear()
-    _ENTRIES.extend([
-        {"name": "Alice Martin", "email": "alice@lab.local", "company": "LabCorp"},
-        {"name": "Bob Test", "email": "bob@lab.local", "company": "TestInc"},
-    ])
-    return redirect("/")
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/export",methods=["POST"])
+def api_export()->Any:
+    data=request.get_json(force=True,silent=True) or {}
+    entries=data.get("entries",[])
+    out=io.StringIO()
+    w=csv.writer(out)
+    w.writerow(["Nom","Email","Entreprise"])
+    for e in entries:
+        w.writerow([e.get("name",""),e.get("email",""),e.get("company","")])
+    return Response(out.getvalue(),mimetype="text/csv",headers={"Content-Disposition":"attachment; filename=contacts_vulnerable.csv"})
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

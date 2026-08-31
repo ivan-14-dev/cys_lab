@@ -1,148 +1,33 @@
-"""
-Log Injection Lab — Secure Version
-<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
-
-Defenses applied:
-- Structured logging (extra dict — no string concatenation)
-- Control character stripping
-- Input validation
-"""
+"""Log Injection Lab — Secure | CWE-117"""
 from __future__ import annotations
-
-import io
-import json
-import logging
-import os
-import re
-import unicodedata
+import logging,os,re
 from typing import Any
+from flask import Flask,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-log-secure"
+_log_records=[]
+_RE=re.compile(r"^[a-zA-Z0-9_-]{1,32}$")
+class _Cap(logging.Handler):
+    def emit(self,r):
+        e={"time":self.formatter.formatTime(r),"level":r.levelname,"msg":r.getMessage(),"username":getattr(r,"username",None)}
+        _log_records.append(e)
+_l=logging.getLogger("lab.log.secure")
+_l.setLevel(logging.INFO)
+_h=_Cap()
+_h.setFormatter(logging.Formatter("%(asctime)s"))
+_l.addHandler(_h)
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Log Injection Sécurisé</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input,.fg textarea{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}.term{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;font-family:monospace;font-size:.82em;color:#00ff00;min-height:80px;white-space:pre-wrap}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn s"><i class="fa-solid fa-circle-check"></i> LOG INJECTION SÉCURISÉ — SÉCURISÉ <span>| Validation + Structured Logging | CWE-117 | Vulnérable: localhost:5015</span></div><div class="ctr"><h1>Log Injection — Sécurisé</h1><div class="mt"><span class="bge bgrn">Sécurisé</span><span class="bge bcwe">CWE-117</span><span class="bge bo">OWASP A09:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Testez les payloads</h2><div class="bx s"><i class="fa-solid fa-circle-check"></i> Validation allowlist — les caractères de contrôle sont rejetés avant le logging.</div><div class="pl"><div class="lb">1 — Normal</div><div class="pc">alice</div><button class="btn btgr" onclick="f(\'alice\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Injection \\n (bloqué)</div><div class="pc">alice\\nFAKE_ENTRY</div><button class="btn btgr" onclick="f(\'alice\\nFAKE_ENTRY\')"><i class="fa-solid fa-play"></i> Tester</button></div><div class="pl"><div class="lb">3 — Caractères spéciaux (bloqué)</div><div class="pc">admin\\r\\nSECURITY_BYPASS</div><button class="btn btgr" onclick="f(\'admin\\r\\nSECURITY_BYPASS\')"><i class="fa-solid fa-play"></i> Tester</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Service de login sécurisé</h2><div class="bx s"><i class="fa-solid fa-shield-halved"></i> Validation pattern + logging structuré.</div><div class="fg"><label>Username (a-z 0-9 _ - uniquement)</label><input id="fu" value="alice"></div><button class="btn btg" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button></div><div class="term" id="log-out">$ Logs ici...</div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-shield-halved"></i> Défense</h2><div class="co g">import re\nPATTERN = re.compile(r"^[a-zA-Z0-9_-]{1,32}$")\n\n# Étape 1: Validation\nif not PATTERN.match(username):\n    return error("Format invalide")\n\n# Étape 2: Logging structuré\n# username est un CHAMP, pas dans la string\nlogger.info("Login attempt", extra={"username": username})\n# → {"time":"...","level":"INFO","username":"alice"}</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-list-check"></i> Défenses en couches</h2><ul><li>Validation allowlist (rejette \\n \\r)</li><li>Logging structuré (JSON/extra)</li><li>Suppression des chars de contrôle si nécessaire</li></ul></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Sécurisé (ici)</h2><div class="co g">PATTERN = re.compile(r"^[a-zA-Z0-9_-]{1,32}$")\n\nif not PATTERN.match(username):\n    return error(400)\n\n# Logging structuré\nlogger.info("Login attempt", extra={"username": username})\n# username jamais concaténé dans le message</div></div></div><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Vulnérable (:5015)</h2><div class="co">logger.info("Login attempt for: " + username)\n# \\n dans username → 2 lignes créées</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2><table><tr><th>Entrée</th><th style="color:#f85149">:5015</th><th style="color:#3fb950">Ici</th></tr><tr><td>alice</td><td>1 ligne</td><td>1 ligne</td></tr><tr><td>alice\\nFAKE</td><td style="color:#f85149">2 lignes</td><td style="color:#3fb950">Rejeté</td></tr></table></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}function f(v){document.getElementById(\'fu\').value=v;}function doLogin(){  const u=document.getElementById(\'fu\').value;  fetch(\'/api/login\',{method:\'POST\',headers:{\'Content-Type\':\'application/json\'},body:JSON.stringify({username:u})}).then(r=>r.json()).then(d=>{    fetch(\'/api/logs\').then(r=>r.json()).then(logs=>{      const el=document.getElementById(\'log-out\');      if(d.blocked){el.textContent=\'[BLOQUÉ] \'+d.error;el.style.color=\'#3fb950\';}      else{el.textContent=\'--- Logs ---\\n\'+JSON.stringify(logs.logs,null,2);el.style.color=\'#00ff00\';}    });  });}</script></body></html>'
 
-from flask import Flask, jsonify, request
-
-app = Flask(__name__)
-app.secret_key = "lab-log-secure-key"
-
-_log_records: list[dict] = []
-
-_USERNAME_RE = re.compile(r'^[a-zA-Z0-9_\-]{1,32}$')
-
-
-class _StructuredHandler(logging.Handler):
-    """Stores log records as structured dicts — no free-form string concatenation."""
-    def emit(self, record: logging.LogRecord) -> None:
-        _log_records.append({
-            "time": self.formatter.formatTime(record),
-            "level": record.levelname,
-            # username is a structured field — not embedded in the message string
-            "message": record.getMessage(),
-            "username": getattr(record, "username", None),
-        })
-
-
-_logger = logging.getLogger("lab.login.secure")
-_logger.setLevel(logging.INFO)
-_handler = _StructuredHandler()
-_handler.setFormatter(logging.Formatter("%(asctime)s"))
-_logger.addHandler(_handler)
-
-
-def _strip_control_chars(value: str) -> str:
-    """Remove newlines and other control characters from log values."""
-    return re.sub(r'[\r\n\x00-\x1f\x7f]', '', value)
-
-
-def _validate_username(username: str) -> str | None:
-    if not username:
-        return "Username required."
-    if not _USERNAME_RE.match(username):
-        return "Invalid username format."
-    return None
-
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Log Injection Lab — Secure</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
-.defense-box {{ background: #d4edda; border: 1px solid #28a745; padding: 12px; margin: 16px 0; }}
-pre {{ background: #1e1e1e; color: #00ff00; padding: 16px; border-radius: 4px; font-size: 0.85em; white-space: pre-wrap; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 350px; }}
-button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> LOG INJECTION LAB — SECURE — Structured Logging Applied</div>
-<h1>Login Service</h1>
-<div class="defense-box">
-<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> Structured logging | Control char stripping | Username validation
-<br><small>Username is a field, not embedded in the log string. \\n injection has no effect.</small>
-</div>
-<form method="POST" action="/login">
-  <label>Username:</label><br>
-  <input type="text" name="username" maxlength="32" placeholder="Enter username">
-  <button type="submit">Login</button>
-</form>
-<h3>Log Output (structured):</h3>
-<pre>{logs}</pre>
-</body></html>"""
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    logs = json.dumps(_log_records[-20:], indent=2) if _log_records else "[]"
-    return _PAGE.format(logs=logs)
-
-
-@app.route("/login", methods=["POST"])
-def login() -> Any:
-    raw_username = request.form.get("username", "")
-    error = _validate_username(raw_username)
-    safe_username = _strip_control_chars(raw_username)
-    if error:
-        # SECURE: log the rejection with username as a structured field
-        _logger.warning(
-            "Login rejected: invalid username format",
-            extra={"username": safe_username},
-        )
-    else:
-        _logger.info(
-            "Login attempt",
-            extra={"username": safe_username},
-        )
-    logs = json.dumps(_log_records[-20:], indent=2)
-    return _PAGE.format(logs=logs)
-
-
-@app.route("/api/login", methods=["POST"])
-def api_login() -> Any:
-    data = request.get_json(force=True, silent=True) or {}
-    raw_username = str(data.get("username", ""))
-    error = _validate_username(raw_username)
-    safe_username = _strip_control_chars(raw_username)
-    if error:
-        return jsonify({"error": error, "blocked": True}), 400
-    _logger.info("Login attempt", extra={"username": safe_username})
-    return jsonify({
-        "status": "attempted",
-        "log_count": len(_log_records),
-        "blocked": False,
-    })
-
-
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/login",methods=["POST"])
+def api_login()->Any:
+    data=request.get_json(force=True,silent=True) or {}
+    username=str(data.get("username",""))
+    if not _RE.match(username):return jsonify({"error":"Format invalide (a-z 0-9 _ -)","blocked":True}),400
+    _l.info("Login attempt",extra={"username":username})
+    return jsonify({"status":"attempted","blocked":False})
 @app.route("/api/logs")
-def api_logs() -> Any:
-    return jsonify({"logs": _log_records[-20:]})
-
-
-@app.route("/reset")
-def reset() -> Any:
-    _log_records.clear()
-    from flask import redirect
-    return redirect("/")
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+def api_logs()->Any:return jsonify({"logs":_log_records[-20:]})
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

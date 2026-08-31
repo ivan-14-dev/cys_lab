@@ -1,134 +1,41 @@
-"""
-NoSQL Injection Lab — Vulnerable Version
-<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
-
-Demonstrates: MongoDB operator injection via unvalidated JSON body
-CWE-943, OWASP A03:2021
-"""
+"""NoSQL Injection Lab — Vulnerable | CWE-943 | OWASP A03:2021"""
 from __future__ import annotations
-
 import os
 from typing import Any
-
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 app.secret_key = "lab-nosql-vuln-key"
 
-# In-memory user store (simulates MongoDB behavior for unit tests)
-_USERS_DB = [
+_USERS = [
     {"username": "alice", "password": "lab_alice_pass", "role": "user"},
-    {"username": "bob", "password": "lab_bob_pass", "role": "user"},
+    {"username": "bob",   "password": "lab_bob_pass",   "role": "user"},
     {"username": "admin", "password": "lab_admin_pass", "role": "admin"},
 ]
 
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>NoSQL Injection Lab — Vulnerable</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
-.ctf-box {{ background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin: 16px 0; border-radius: 4px; }}
-.result {{ background: #1e1e1e; color: #00ff00; padding: 16px; border-radius: 4px; margin: 16px 0; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 300px; }}
-button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> NOSQL INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
-<h1>Authentication Portal</h1>
-<div class="ctf-box">
-<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Bypass authentication without knowing the password.
-<br>Hint: Send JSON with <code>{{"username": "admin", "password": {{"$ne": null}}}}</code>
-<br><strong>Objective:</strong> Log in as admin using a MongoDB operator.
-</div>
-<p>Use the API: <code>POST /api/login</code> with JSON body.</p>
-<p>Normal users: alice, bob, admin</p>
-<div class="result" id="result">{result}</div>
-<a href="/demo">View demo payloads</a>
-</body></html>"""
+PAGE = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>NoSQL Injection</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input,.fg textarea{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.fg textarea{height:68px;resize:vertical}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn v"><i class="fa-solid fa-triangle-exclamation"></i> NOSQL INJECTION — VULNÉRABLE <span>| $ne/$gt bypass | CWE-943 | OWASP A03:2021 | Sécurisé: localhost:5008</span></div><div class="ctr"><h1>NoSQL Injection — Authentification</h1>\n<div class="mt"><span class="bge br">Vulnérable</span><span class="bge bcwe">CWE-943</span><span class="bge bo">OWASP A03:2021</span></div>\n<div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div>\n<div id="t-demo" class="tp a">\n<div class="gd">\n<div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Payloads NoSQL</h2>\n<div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> Ces objets JSON contiennent des <strong>opérateurs MongoDB</strong> qui modifient la logique de requête.</div>\n<div class="pl"><div class="lb">1 — Login correct</div><div class="pc">username=alice, password=lab_alice_pass</div><div class="pd">Attendu: authentifié. Référence.</div><button class="btn btgr" onclick="setJ(\'alice\',\'lab_alice_pass\',false)"><i class="fa-solid fa-play"></i> Normal</button></div>\n<div class="pl"><div class="lb">2 — Mauvais mot de passe</div><div class="pc">username=admin, password=mauvais</div><div class="pd">Attendu: rejeté.</div><button class="btn btgr" onclick="setJ(\'admin\',\'mauvais\',false)"><i class="fa-solid fa-play"></i> Test</button></div>\n<div class="pl"><div class="lb">3 — Injection $ne (bypass)</div><div class="pc">{"password":{"$ne":null}}</div><div class="pd"><strong>L\'opérateur $ne bypasse la vérification !</strong> MongoDB retourne tout document où password != null.</div><button class="btn btgr" onclick="setNe(\'admin\')"><i class="fa-solid fa-play"></i> Injecter $ne</button></div>\n<div class="pl"><div class="lb">4 — Injection $gt (bypass)</div><div class="pc">{"password":{"$gt":""}}</div><div class="pd">$gt "" match tout password non vide.</div><button class="btn btgr" onclick="setGt(\'bob\')"><i class="fa-solid fa-play"></i> Injecter $gt</button></div>\n</div></div>\n<div><div class="cd"><h2><i class="fa-solid fa-triangle-exclamation"></i> Formulaire vulnérable</h2>\n<div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> Le JSON body est utilisé <strong>directement</strong> comme filtre. Les opérateurs MongoDB comme <code>$ne</code> et <code>$gt</code> sont acceptés.</div>\n<div class="fg"><label>Nom d\'utilisateur</label><input id="fu" value="admin"></div>\n<div class="fg"><label>Mot de passe (JSON autorisé)</label><textarea id="fp">lab_alice_pass</textarea></div>\n<button class="btn btr" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button>\n</div>\n<div class="res" id="lr"><p style="color:#6e7681;font-size:.82em">Résultat ici...</p></div>\n<div class="bx i" style="margin-top:8px"><i class="fa-solid fa-magnifying-glass"></i>\nPayload 3 : username=admin + password={"$ne":null} → devrait être <strong style="color:#f85149">authentifié sans connaître le vrai mot de passe</strong>.\n</div></div></div></div>\n<div id="t-theory" class="tp"><div class="g2"><div><div class="cd">\n<h2><i class="fa-solid fa-circle-question"></i> Qu\'est-ce que NoSQL Injection ?</h2>\n<p>MongoDB et autres BDD NoSQL acceptent des requêtes JSON/BSON. Quand l\'application passe le corps JSON directement comme filtre, un attaquant peut injecter des <strong>opérateurs de requête</strong>.</p>\n<h2><i class="fa-solid fa-diagram-project"></i> Mécanisme</h2>\n<div class="co">Requête attendue :\n  db.users.find({"username":"admin","password":"secret"})\n\nAvec injection $ne :\n  db.users.find({\n    "username":"admin",\n    "password":{"$ne":null}\n  })\n→ WHERE username="admin" AND password IS NOT NULL\n→ Vrai si l\'utilisateur existe → bypass auth !</div>\n</div></div>\n<div><div class="cd">\n<h2><i class="fa-solid fa-bolt"></i> Opérateurs dangereux</h2>\n<table><tr><th>Opérateur</th><th>Effet</th></tr>\n<tr><td><code>$ne</code></td><td>Bypass si le champ existe</td></tr>\n<tr><td><code>$gt</code></td><td>Bypass si non vide</td></tr>\n<tr><td><code>$regex</code></td><td>Extraction caractère par caractère</td></tr>\n<tr><td><code>$where</code></td><td>Exécution JS (anciens MongoDB)</td></tr>\n</table>\n<h2><i class="fa-solid fa-book-open"></i> Références</h2>\n<div class="bx i">CWE-943 — Data Query Logic Injection<br>OWASP A03:2021 — Injection</div>\n</div></div></div></div>\n<div id="t-code" class="tp"><div class="g2">\n<div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Code vulnérable (ici)</h2>\n<div class="co">body = request.get_json()\nusername = body.get("username")\npassword = body.get("password")\n# password peut être {"$ne": null}\nuser = db.users.find_one({\n    "username": username,\n    "password": password  # ← opérateur injecté !\n})</div></div></div>\n<div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Code sécurisé (localhost:5008)</h2>\n<div class="co g">from pydantic import BaseModel, field_validator\n\nclass LoginRequest(BaseModel):\n    username: str  # str enforce le type\n    password: str  # jamais dict/object !\n\n    @field_validator("username", "password")\n    def no_operators(cls, v):\n        if not isinstance(v, str):\n            raise ValueError("String requis")\n        return v\n\ncreds = LoginRequest.model_validate(body)\nuser = db.users.find_one({\n    "username": creds.username,\n    "password": creds.password\n})</div></div></div>\n</div></div>\n<div id="t-fix" class="tp"><div class="g2">\n<div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2>\n<table>\n<tr><th>Test</th><th style="color:#f85149">:5007 Vulnérable</th><th style="color:#3fb950">:5008 Sécurisé</th></tr>\n<tr><td>Login correct</td><td>OK</td><td>OK</td></tr>\n<tr><td>Mauvais MDP</td><td>Rejeté</td><td>Rejeté</td></tr>\n<tr><td><code>{"$ne":null}</code></td><td style="color:#f85149">Bypass auth !</td><td style="color:#3fb950">Rejeté (type error)</td></tr>\n<tr><td><code>{"$gt":""}</code></td><td style="color:#f85149">Bypass auth !</td><td style="color:#3fb950">Rejeté</td></tr>\n</table></div></div>\n<div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Règle</h2>\n<div class="bx s">Toujours valider que username et password sont des <strong>strings</strong>.<br>Utiliser un schéma Pydantic/Joi/etc. qui force les types.<br>Ne jamais passer le JSON brut comme filtre MongoDB.</div>\n</div></div></div></div>\n</div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}\nfunction setJ(u,p,inject){document.getElementById(\'fu\').value=u;document.getElementById(\'fp\').value=inject?JSON.stringify({"$ne":null}):p;}\nfunction setNe(u){document.getElementById(\'fu\').value=u;document.getElementById(\'fp\').value=\'{"$ne":null}\';}\nfunction setGt(u){document.getElementById(\'fu\').value=u;document.getElementById(\'fp\').value=\'{"$gt":""}\';}\nfunction doLogin(){\n  const u=document.getElementById(\'fu\').value;\n  let p=document.getElementById(\'fp\').value;\n  let pw;\n  try{pw=JSON.parse(p);}catch(e){pw=p;}\n  fetch(\'/api/login\',{method:\'POST\',headers:{\'Content-Type\':\'application/json\'},body:JSON.stringify({username:u,password:pw})})\n    .then(r=>r.json().then(d=>({s:r.status,d})))\n    .then(({s,d})=>{\n      const el=document.getElementById(\'lr\');\n      if(s===200){el.innerHTML=\'<div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> <strong>AUTHENTIFIÉ ! role=\'+d.role+\'</strong> — Bypass réussi sans le vrai mot de passe !</div>\';}\n      else{el.innerHTML=\'<div class="bx s"><i class="fa-solid fa-lock"></i> Accès refusé: \'+(d.message||d.error)+\'</div>\';}\n    });\n}\n</script></body></html>'
 
-_DEMO = """<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>NoSQL Demo</title>
-<style>body{{font-family:monospace;max-width:900px;margin:40px auto;padding:0 20px;}}
-code{{background:#f4f4f4;padding:2px 6px;display:block;margin:4px 0;}}
-</style></head><body>
-<h1>NoSQL Injection Demo Payloads</h1>
-<h2>Normal Login (use curl)</h2>
-<code>curl -X POST http://localhost:5007/api/login \\
-  -H "Content-Type: application/json" \\
-  -d '{{"username":"alice","password":"lab_alice_pass"}}'</code>
-<h2>Injection — $ne operator (password bypass)</h2>
-<code>curl -X POST http://localhost:5007/api/login \\
-  -H "Content-Type: application/json" \\
-  -d '{{"username":"admin","password":{{"$ne":null}}}}'</code>
-<p>The <code>$ne: null</code> operator matches any non-null value → bypasses password check.</p>
-<h2>Injection — $gt operator</h2>
-<code>curl -X POST http://localhost:5007/api/login \\
-  -H "Content-Type: application/json" \\
-  -d '{{"username":"admin","password":{{"$gt":""}}}}'</code>
-<a href="/">Back</a>
-</body></html>"""
-
-
-def _find_user_vulnerable(username: Any, password: Any) -> dict | None:
-    """VULNERABLE: accepts operator objects as filter values."""
-    # Simulate MongoDB-style query evaluation
-    for user in _USERS_DB:
-        # Username check
-        if user["username"] != username:
-            continue
-        # VULNERABILITY: password can be a MongoDB operator object
+def _find(username, password):
+    for u in _USERS:
+        if u["username"] != username: continue
         if isinstance(password, dict):
-            # Simulate $ne, $gt operators — this is what MongoDB does with untrusted objects
-            if "$ne" in password:
-                if user["password"] != password["$ne"]:
-                    return user
-            elif "$gt" in password:
-                if user["password"] > password["$gt"]:
-                    return user
-            elif "$regex" in password:
+            if "$ne" in password and u["password"] != password["$ne"]: return u
+            if "$gt" in password and u["password"] > password["$gt"]: return u
+            if "$regex" in password:
                 import re
-                if re.match(password["$regex"], user["password"]):
-                    return user
-        elif user["password"] == password:
-            return user
+                if re.search(password["$regex"], u["password"]): return u
+        elif u["password"] == password: return u
     return None
 
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    return _PAGE.format(result="Send a POST to /api/login with JSON credentials.")
-
+@app.route("/")
+def index() -> Any: return PAGE
 
 @app.route("/api/login", methods=["POST"])
 def api_login() -> Any:
-    """VULNERABLE: JSON body used directly as query filter."""
-    body = request.get_json(force=True, silent=True)
-    if not body:
-        return jsonify({"error": "JSON body required"}), 400
-
-    # VULNERABILITY: no type validation — operator objects accepted
-    username = body.get("username")
-    password = body.get("password")
-
-    user = _find_user_vulnerable(username, password)
-    if user:
-        return jsonify({
-            "status": "authenticated",
-            "username": user["username"],
-            "role": user["role"],
-            "message": f"Welcome {user['username']}! Role: {user['role']}",
-        })
-    return jsonify({"status": "failed", "message": "Invalid credentials"}), 401
-
-
-@app.route("/demo")
-def demo() -> Any:
-    return _DEMO
-
+    body = request.get_json(force=True, silent=True) or {}
+    user = _find(body.get("username"), body.get("password"))
+    if user: return jsonify({"status": "authenticated", "username": user["username"], "role": user["role"]})
+    return jsonify({"status": "failed", "message": "Identifiants invalides"}), 401
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)

@@ -1,119 +1,29 @@
-"""
-Log Injection Lab — Vulnerable Version
-<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
-
-Demonstrates: Log entry injection via string concatenation
-CWE-117, OWASP A09:2021
-"""
+"""Log Injection Lab — Vulnerable | CWE-117"""
 from __future__ import annotations
-
-import io
-import logging
-import os
+import io,logging,os
 from typing import Any
+from flask import Flask,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-log-vuln"
+_log_records=[]
+class _Cap(logging.Handler):
+    def emit(self,r):_log_records.append(self.formatter.formatTime(r)+" ["+r.levelname+"] "+r.getMessage())
+_l=logging.getLogger("lab.log.vuln")
+_l.setLevel(logging.INFO)
+_h=_Cap()
+_h.setFormatter(logging.Formatter("%(asctime)s"))
+_l.addHandler(_h)
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Log Injection</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input,.fg textarea{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}.term{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;font-family:monospace;font-size:.82em;color:#00ff00;min-height:80px;white-space:pre-wrap}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn v"><i class="fa-solid fa-triangle-exclamation"></i> LOG INJECTION — VULNÉRABLE <span>| Concaténation logs | CWE-117 | OWASP A09:2021 | Sécurisé: localhost:5016</span></div><div class="ctr"><h1>Log Injection — Service de login</h1><div class="mt"><span class="bge br">Vulnérable</span><span class="bge bcwe">CWE-117</span><span class="bge bo">OWASP A09:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Payloads Log Injection</h2><div class="bx d"><i class="fa-solid fa-triangle-exclamation"></i> Les caractères de contrôle (\\n, \\r) <strong>créent de fausses entrées de log</strong>.</div><div class="pl"><div class="lb">1 — Login normal</div><div class="pc">alice</div><div class="pd">Entrée normale. 1 ligne dans les logs.</div><button class="btn btgr" onclick="f(\'alice\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Injection \\n (fausse entrée)</div><div class="pc">alice\\nINFO 2024-01-01 [INFO] Login SUCCESS for: root</div><div class="pd">Crée une FAUSSE entrée de log. root semble s\'être connecté avec succès.</div><button class="btn btgr" onclick="f(\'alice\\nINFO 2024-01-01 [INFO] Login SUCCESS for: root\')"><i class="fa-solid fa-play"></i> Injecter</button></div><div class="pl"><div class="lb">3 — Injection \\r\\n</div><div class="pc">bob\\r\\n[SECURITY] Auth bypass successful</div><button class="btn btgr" onclick="f(\'bob\\r\\n[SECURITY] Auth bypass successful\')"><i class="fa-solid fa-play"></i> Injecter</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-triangle-exclamation"></i> Service de login vulnérable</h2><div class="bx d">Username concaténé directement dans le message de log. Les \\n créent de nouvelles lignes.</div><div class="fg"><label>Username (essayez un payload avec \\n)</label><input id="fu" value="alice"></div><button class="btn btr" onclick="doLogin()"><i class="fa-solid fa-right-to-bracket"></i> Se connecter</button></div><div class="term" id="log-out">$ Logs ici...</div><div class="bx i" style="margin-top:8px"><i class="fa-solid fa-magnifying-glass"></i> Comparez avec <a href="http://localhost:5016" style="color:#58a6ff">localhost:5016</a>.</div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-circle-question"></i> Log Injection</h2><p>L\'injection de logs survient quand une entrée utilisateur est intégrée dans un message de log par concaténation. Des caractères de contrôle (\\n, \\r) permettent d\'insérer de fausses entrées.</p><div class="co">Attendu:\n  2024-01-01 [INFO] Login attempt for: alice\n\nInjecté (username = "alice\\nFAKE"):\n  2024-01-01 [INFO] Login attempt for: alice\n  FAKE  ← FAUSSE ENTRÉE</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-bolt"></i> Impact</h2><div class="bx d"><ul><li>Falsification de l\'audit trail</li><li>Injection de faux événements de sécurité</li><li>Masquage d\'activités malveillantes</li><li>Corruption de l\'analyse forensique</li></ul></div><div class="bx i">CWE-117 — Improper Output Neutralization for Logs<br>OWASP A09:2021 — Security Logging Failures</div></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Vulnérable (ici)</h2><div class="co">username = request.json["username"]\n\n# VULNÉRABLE : concaténation directe\nlogger.info("Login attempt for: " + username)\n\n# Si username = "alice\\nFAKE"\n# → 2 lignes créées dans les logs</div></div></div><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Sécurisé (:5016)</h2><div class="co g">import re\n\n# Validation\nif not re.match(r"^[a-zA-Z0-9_-]{1,32}$", username):\n    return error(400)\n\n# Logging structuré — username est un CHAMP\nlogger.info("Login attempt", extra={"username": username})\n# username est isolé, pas concaténé dans la chaîne</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2><table><tr><th>Entrée</th><th style="color:#f85149">:5015</th><th style="color:#3fb950">:5016</th></tr><tr><td>alice</td><td>1 ligne de log</td><td>1 ligne de log</td></tr><tr><td>alice\\nFAKE</td><td style="color:#f85149">2 lignes (injection)</td><td style="color:#3fb950">Rejeté (validation)</td></tr></table></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Défense</h2><div class="bx s">Validation allowlist: seuls a-z 0-9 _ - autorisés.<br>Logging structuré: username comme champ, pas dans la chaîne.<br>Supprimer \\n \\r si logging structuré impossible.</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}function f(v){document.getElementById(\'fu\').value=v;}function doLogin(){  const u=document.getElementById(\'fu\').value;  fetch(\'/api/login\',{method:\'POST\',headers:{\'Content-Type\':\'application/json\'},body:JSON.stringify({username:u})}).then(r=>r.json()).then(d=>{    fetch(\'/api/logs\').then(r=>r.json()).then(logs=>{      const el=document.getElementById(\'log-out\');      el.textContent=\'--- Logs serveur ---\\n\'+logs.logs.join(\'\\n\');      if(logs.logs.some(l=>l.includes(\'SUCCESS\')||l.includes(\'bypass\'))){el.style.color=\'#f85149\';}      else{el.style.color=\'#00ff00\';}    });  });}</script></body></html>'
 
-from flask import Flask, jsonify, request
-
-app = Flask(__name__)
-app.secret_key = "lab-log-vuln-key"
-
-# In-memory log capture for testing
-_log_records: list[str] = []
-
-# VULNERABLE: simple stream handler that accepts any string
-_handler = logging.StreamHandler(io.StringIO())
-_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-
-_logger = logging.getLogger("lab.login.vulnerable")
-_logger.setLevel(logging.INFO)
-_logger.addHandler(_handler)
-
-
-class _CapturingHandler(logging.Handler):
-    """Captures log records for test verification."""
-    def emit(self, record: logging.LogRecord) -> None:
-        _log_records.append(self.format(record))
-
-
-_capture_handler = _CapturingHandler()
-_capture_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
-_logger.addHandler(_capture_handler)
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Log Injection Lab — Vulnerable</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
-.ctf-box {{ background: #fff3cd; border: 1px solid #ffc107; padding: 12px; margin: 16px 0; border-radius: 4px; }}
-pre {{ background: #1e1e1e; color: #00ff00; padding: 16px; border-radius: 4px; font-size: 0.85em; white-space: pre-wrap; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 350px; }}
-button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> LOG INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
-<h1>Login Service</h1>
-<div class="ctf-box">
-<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Inject a fake log entry to forge audit logs.
-<br>Hint: Username = <code>admin\\nINFO 2024-01-01 00:00:01,000 [INFO] Login SUCCESS for user: root</code>
-<br><strong>Objective:</strong> Make the log appear to show a successful root login.
-</div>
-<form method="POST" action="/login">
-  <label>Username:</label><br>
-  <input type="text" name="username" placeholder="Enter username (try injection payload)">
-  <button type="submit">Login</button>
-</form>
-<h3>Log Output:</h3>
-<pre>{logs}</pre>
-</body></html>"""
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    logs = "\n".join(_log_records[-20:]) if _log_records else "No log entries yet."
-    return _PAGE.format(logs=logs)
-
-
-@app.route("/login", methods=["POST"])
-def login() -> Any:
-    """VULNERABLE: username concatenated directly into log message."""
-    username = request.form.get("username", "")
-
-    # VULNERABILITY: direct string concatenation in log
-    # A username containing \n can inject fake log entries
-    _logger.info("Login attempt for user: " + username)
-
-    logs = "\n".join(_log_records[-20:])
-    return _PAGE.format(logs=logs)
-
-
-@app.route("/api/login", methods=["POST"])
-def api_login() -> Any:
-    data = request.get_json(force=True, silent=True) or {}
-    username = str(data.get("username", ""))
-    # VULNERABILITY
-    _logger.info("Login attempt for user: " + username)
-    return jsonify({
-        "status": "attempted",
-        "log_entry": f"Login attempt for user: {username}",
-        "log_count": len(_log_records),
-    })
-
-
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/login",methods=["POST"])
+def api_login()->Any:
+    data=request.get_json(force=True,silent=True) or {}
+    username=str(data.get("username",""))
+    _l.info("Login attempt for: "+username)
+    return jsonify({"status":"attempted"})
 @app.route("/api/logs")
-def api_logs() -> Any:
-    return jsonify({"logs": _log_records[-20:]})
-
-
-@app.route("/reset")
-def reset() -> Any:
-    _log_records.clear()
-    from flask import redirect
-    return redirect("/")
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+def api_logs()->Any:return jsonify({"logs":_log_records[-20:]})
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

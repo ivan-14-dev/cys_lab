@@ -1,181 +1,51 @@
-"""
-Expression Injection Lab — Secure Version
-<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
-
-Defenses applied:
-- AST-based safe math parser (no eval())
-- Strict allowlist of operators and literals
-- Rejects any non-math constructs
-"""
+"""Expression Injection Lab — Secure | CWE-94"""
 from __future__ import annotations
-
-import ast
-import operator
-import os
+import ast,operator,os
 from typing import Any
-
-from flask import Flask, jsonify, request
-
-app = Flask(__name__)
-app.secret_key = "lab-expr-secure-key"
-
-# Allowed AST node types — math only
-_ALLOWED_NODES = (
-    ast.Expression,
-    ast.BinOp,
-    ast.UnaryOp,
-    ast.Constant,
-    ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod, ast.Pow,
-    ast.USub, ast.UAdd,
-)
-
-_OPERATORS = {
-    ast.Add: operator.add,
-    ast.Sub: operator.sub,
-    ast.Mult: operator.mul,
-    ast.Div: operator.truediv,
-    ast.Mod: operator.mod,
-    ast.Pow: operator.pow,
-    ast.USub: operator.neg,
-    ast.UAdd: operator.pos,
-}
-
-_MAX_EXPRESSION_LENGTH = 128
-_MAX_RESULT = 1e15  # Prevent huge exponentiation
-
-
-class ExpressionError(ValueError):
-    """Raised when expression is invalid or unsafe."""
-
-
-def _eval_node(node: ast.AST) -> float | int:
-    """Recursively evaluate an AST node — only math allowed."""
-    if not isinstance(node, _ALLOWED_NODES):
-        raise ExpressionError(f"Unsafe node type: {type(node).__name__}")
-
-    if isinstance(node, ast.Constant):
-        if not isinstance(node.value, (int, float)):
-            raise ExpressionError("Only numeric literals are allowed.")
-        return node.value
-
-    if isinstance(node, ast.BinOp):
-        op_type = type(node.op)
-        if op_type not in _OPERATORS:
-            raise ExpressionError(f"Operator not allowed: {op_type.__name__}")
-        left = _eval_node(node.left)
-        right = _eval_node(node.right)
-        # Guard against division by zero and huge exponents
-        if op_type == ast.Div and right == 0:
-            raise ExpressionError("Division by zero.")
-        if op_type == ast.Pow and abs(right) > 20:
-            raise ExpressionError("Exponent too large (max 20).")
-        result = _OPERATORS[op_type](left, right)
-        if abs(result) > _MAX_RESULT:
-            raise ExpressionError("Result out of allowed range.")
+from flask import Flask,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-expr-secure"
+_NODES=(ast.Expression,ast.BinOp,ast.UnaryOp,ast.Constant,ast.Add,ast.Sub,ast.Mult,ast.Div,ast.Mod,ast.Pow,ast.USub,ast.UAdd)
+_OPS={ast.Add:operator.add,ast.Sub:operator.sub,ast.Mult:operator.mul,ast.Div:operator.truediv,ast.Mod:operator.mod,ast.Pow:operator.pow,ast.USub:operator.neg,ast.UAdd:operator.pos}
+class ExprError(ValueError):pass
+def _ev(n):
+    if not isinstance(n,_NODES):raise ExprError(f"Non autorisé: {type(n).__name__}")
+    if isinstance(n,ast.Constant):
+        if not isinstance(n.value,(int,float)):raise ExprError("Seuls les nombres sont autorisés")
+        return n.value
+    if isinstance(n,ast.BinOp):
+        t=type(n.op)
+        if t not in _OPS:raise ExprError(f"Opérateur non autorisé: {t.__name__}")
+        l,r=_ev(n.left),_ev(n.right)
+        if t==ast.Div and r==0:raise ExprError("Division par zéro")
+        if t==ast.Pow and abs(r)>20:raise ExprError("Exposant trop grand")
+        result=_OPS[t](l,r)
+        if abs(result)>1e15:raise ExprError("Résultat hors limites")
         return result
+    if isinstance(n,ast.UnaryOp):
+        t=type(n.op)
+        if t not in _OPS:raise ExprError(f"Non autorisé: {t.__name__}")
+        return _OPS[t](_ev(n.operand))
+    raise ExprError(f"Nœud inconnu: {type(n).__name__}")
+def safe_eval(expr):
+    if len(expr)>128:raise ExprError("Expression trop longue")
+    if not expr.strip():raise ExprError("Expression vide")
+    try:tree=ast.parse(expr,mode="eval")
+    except SyntaxError as e:raise ExprError(f"Erreur syntaxe: {e}") from e
+    return _ev(tree.body)
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Expression Injection Sécurisé</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:monospace}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.result-val{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:14px;margin-top:10px}.result-num{font-size:2em;font-weight:700;color:#3fb950;font-family:monospace}.result-type{font-size:.75em;color:#6e7681;margin-top:4px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn s"><i class="fa-solid fa-circle-check"></i> EXPRESSION INJECTION SÉCURISÉ — SÉCURISÉ <span>| AST Math Parser | CWE-94 | Vulnérable: localhost:5019</span></div><div class="ctr"><h1>Expression Injection — Sécurisé</h1><div class="mt"><span class="bge bgrn">Sécurisé</span><span class="bge bcwe">CWE-94</span><span class="bge bo">OWASP A03:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Testez les payloads</h2><div class="bx s"><i class="fa-solid fa-circle-check"></i> Parser AST — seules les opérations mathématiques numériques sont autorisées.</div><div class="pl"><div class="lb">1 — Calcul normal</div><div class="pc">2+2*10</div><div class="pd">Autorisé: résultat = 22.</div><button class="btn btgr" onclick="f(\'2+2*10\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Math complexe</div><div class="pc">(10+5)*2-3</div><button class="btn btgr" onclick="f(\'(10+5)*2-3\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">3 — String (bloqué)</div><div class="pc">"injection"*3</div><div class="pd">Rejeté: Constant string non autorisé.</div><button class="btn btgr" onclick="f(\'&quot;injection&quot;*3\')"><i class="fa-solid fa-play"></i> Tester</button></div><div class="pl"><div class="lb">4 — Import (bloqué)</div><div class="pc">__import__(\'os\')</div><button class="btn btgr" onclick="f(&quot;__import__(\'os\')&quot;)"><i class="fa-solid fa-play"></i> Tester</button></div><div class="pl"><div class="lb">5 — Liste (bloqué)</div><div class="pc">[1,2,3]</div><button class="btn btgr" onclick="f(\'[1,2,3]\')"><i class="fa-solid fa-play"></i> Tester</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Calculatrice sécurisée</h2><div class="bx s"><i class="fa-solid fa-shield-halved"></i> Parser AST Python — analyse la syntaxe sans exécuter. Seuls +, -, *, /, %, ** et les nombres autorisés.</div><div class="fg"><label>Expression mathématique</label><input id="fe" value="(2+3)*4"></div><button class="btn btg" onclick="doCalc()"><i class="fa-solid fa-calculator"></i> Calculer</button></div><div class="result-val" id="rv"><div style="font-size:.82em;color:#8b949e">Résultat :</div><div class="result-num" id="rn">—</div><div class="result-type" id="rt"></div></div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-shield-halved"></i> Parser AST sécurisé</h2><p>Au lieu d\'exécuter le code avec <code>eval()</code>, on analyse d\'abord la syntaxe avec le module <code>ast</code> de Python. Seuls les nœuds autorisés sont évalués.</p><div class="co g">import ast\n\n# Nœuds AST autorisés\nALLOWED = (\n    ast.Expression, ast.BinOp, ast.UnaryOp,\n    ast.Constant,  # seulement nombres\n    ast.Add, ast.Sub, ast.Mult,\n    ast.Div, ast.Mod, ast.Pow,\n)\n\ndef safe_eval(expr):\n    tree = ast.parse(expr, mode="eval")\n    # Vérifier chaque nœud de l\'arbre\n    for node in ast.walk(tree):\n        if not isinstance(node, ALLOWED):\n            raise ValueError(f"Non autorisé: {type(node).__name__}")\n    return _eval_node(tree.body)</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-list-check"></i> Nœuds autorisés vs interdits</h2><table><tr><th>Type</th><th>Autorisé</th><th>Rejeté</th></tr><tr><td>Nombre</td><td>42, 3.14</td><td></td></tr><tr><td>Opérateur</td><td>+ - * / % **</td><td></td></tr><tr><td>String</td><td></td><td>"abc"</td></tr><tr><td>Import</td><td></td><td>__import__</td></tr><tr><td>Fonction</td><td></td><td>open(), exec()</td></tr><tr><td>Attribution</td><td></td><td>x = 1</td></tr></table></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Sécurisé (ici)</h2><div class="co g">import ast, operator\n\nALLOWED_NODES = (ast.Expression, ast.BinOp, ast.UnaryOp, ast.Constant, ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod, ast.Pow, ast.USub, ast.UAdd)\n\ndef safe_eval(expr):\n    tree = ast.parse(expr, mode="eval")\n    for node in ast.walk(tree):\n        if not isinstance(node, ALLOWED_NODES):\n            raise ValueError(f"Unsafe: {type(node).__name__}")\n        if isinstance(node, ast.Constant) and not isinstance(node.value, (int, float)):\n            raise ValueError("Seuls nombres autorisés")\n    return _eval_node(tree.body)</div></div></div><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Vulnérable (:5019)</h2><div class="co">result = eval(user_input)\n# Exécute TOUT: strings, imports, OS commands</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-arrows-left-right"></i> Comparaison</h2><table><tr><th>Expression</th><th style="color:#f85149">:5019</th><th style="color:#3fb950">Ici</th></tr><tr><td>2+2</td><td>4</td><td>4</td></tr><tr><td>"x"*3</td><td style="color:#f85149">xxx</td><td style="color:#3fb950">Rejeté</td></tr><tr><td>__import__(\'os\')</td><td style="color:#f85149">Module exposé</td><td style="color:#3fb950">Rejeté</td></tr></table></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Règle</h2><div class="bx s">Ne jamais utiliser eval() sur des entrées utilisateur.<br>Utiliser un parser AST avec une allowlist de nœuds autorisés.<br>Pour les calculatrices: nombres + opérateurs math seulement.</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}function f(v){document.getElementById(\'fe\').value=v;}function doCalc(){  const expr=document.getElementById(\'fe\').value;  fetch(\'/api/calculate?expression=\'+encodeURIComponent(expr)).then(r=>r.json().then(d=>({s:r.status,d}))).then(({s,d})=>{    const rn=document.getElementById(\'rn\'),rt=document.getElementById(\'rt\');    if(d.blocked){rn.textContent=\'[BLOQUÉ]\';rn.style.color=\'#3fb950\';rt.textContent=d.error;}    else if(d.result!==undefined){rn.textContent=d.result;rn.style.color=\'#3fb950\';rt.textContent=\'nombre\';}    else{rn.textContent=\'Erreur\';rn.style.color=\'#f85149\';rt.textContent=d.error||\'\';}  });}</script></body></html>'
 
-    if isinstance(node, ast.UnaryOp):
-        op_type = type(node.op)
-        if op_type not in _OPERATORS:
-            raise ExpressionError(f"Unary operator not allowed: {op_type.__name__}")
-        operand = _eval_node(node.operand)
-        return _OPERATORS[op_type](operand)
-
-    raise ExpressionError(f"Unexpected node: {type(node).__name__}")
-
-
-def safe_eval(expression: str) -> float | int:
-    """
-    Safely evaluate a math expression using AST parsing.
-    Only allows: numbers, +, -, *, /, %, ** and parentheses.
-    Raises ExpressionError for anything else.
-    """
-    if len(expression) > _MAX_EXPRESSION_LENGTH:
-        raise ExpressionError(f"Expression too long (max {_MAX_EXPRESSION_LENGTH} chars).")
-    if not expression.strip():
-        raise ExpressionError("Empty expression.")
-
+@app.route("/")
+@app.route("/calculate")
+def index()->Any:return PAGE
+@app.route("/api/calculate")
+def api_calc()->Any:
+    expr=request.args.get("expression","")
+    if not expr:return jsonify({"error":"expression requise"}),400
     try:
-        tree = ast.parse(expression, mode="eval")
-    except SyntaxError as e:
-        raise ExpressionError(f"Syntax error: {e}") from e
-
-    return _eval_node(tree.body)
-
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Expression Injection Lab — Secure</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
-.defense-box {{ background: #d4edda; border: 1px solid #28a745; padding: 12px; margin: 16px 0; }}
-.result {{ background: #f8f9fa; border: 2px solid #28a745; padding: 16px; font-size: 1.4em; margin: 16px 0; border-radius: 4px; font-family: monospace; }}
-.error {{ background: #f8d7da; border: 2px solid #dc3545; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 400px; }}
-button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> EXPRESSION INJECTION LAB — SECURE — AST Math Parser Applied</div>
-<h1>Calculator</h1>
-<div class="defense-box">
-<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> AST-based parser | Math-only node allowlist | No eval()
-<br><small>Try <code>__import__('os')</code> — rejected. Try <code>"x"*3</code> — rejected. Only math allowed.</small>
-</div>
-<form method="GET" action="/calculate">
-  <label>Expression (math only: +, -, *, /, %, **, parentheses):</label><br>
-  <input type="text" name="expression" value="{expression}" placeholder="e.g. (2+3)*4">
-  <button type="submit">Calculate</button>
-</form>
-<div class="result {error_class}">Result: {result}</div>
-</body></html>"""
-
-
-@app.route("/", methods=["GET"])
-@app.route("/calculate", methods=["GET"])
-def calculate() -> Any:
-    expression = request.args.get("expression", "")
-    result_text = "Enter an expression above."
-    error_class = ""
-
-    if expression:
-        try:
-            value = safe_eval(expression)
-            result_text = str(value)
-        except ExpressionError as e:
-            result_text = f"[BLOCKED] {e}"
-            error_class = "error"
-
-    from markupsafe import escape
-    return _PAGE.format(
-        expression=str(escape(expression)),
-        result=result_text,
-        error_class=error_class,
-    )
-
-
-@app.route("/api/calculate", methods=["GET"])
-def api_calculate() -> Any:
-    expression = request.args.get("expression", "")
-    if not expression:
-        return jsonify({"error": "expression required"}), 400
-    try:
-        value = safe_eval(expression)
-        return jsonify({
-            "expression": expression,
-            "result": value,
-            "blocked": False,
-        })
-    except ExpressionError as e:
-        return jsonify({
-            "expression": expression,
-            "error": str(e),
-            "blocked": True,
-        }), 400
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+        result=safe_eval(expr)
+        return jsonify({"expression":expr,"result":result,"blocked":False})
+    except ExprError as e:
+        return jsonify({"expression":expr,"error":str(e),"blocked":True}),400
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)

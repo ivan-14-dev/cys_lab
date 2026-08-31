@@ -95,7 +95,8 @@ class TestSafeEval:
         assert mod.safe_eval("2+2") == 4
         assert mod.safe_eval("(10+5)*2") == 30
         assert mod.safe_eval("2**3") == 8
-        with pytest.raises(mod.ExpressionError):
+        ErrClass = getattr(mod, "ExpressionError", None) or getattr(mod, "ExprError", None)
+        with pytest.raises(ErrClass):
             mod.safe_eval('"string"')
-        with pytest.raises(mod.ExpressionError):
+        with pytest.raises(ErrClass):
             mod.safe_eval("__import__('os')")

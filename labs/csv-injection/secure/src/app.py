@@ -1,154 +1,28 @@
-"""
-CSV Injection Lab — Secure Version
-<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
-
-Defenses applied:
-- Sanitize cells starting with formula characters (=, +, -, @, TAB, CR)
-- Prefix with single quote to neutralize formulas
-- Input validation
-"""
+"""CSV Injection Lab — Secure | CWE-1236"""
 from __future__ import annotations
-
-import csv
-import io
-import os
-import re
+import csv,io,os
 from typing import Any
+from flask import Flask,Response,jsonify,request
+app=Flask(__name__)
+app.secret_key="lab-csv-secure"
+_STARTERS=("=","+","-","@")
+def _sanitize(v):
+    v=str(v)
+    if v and v[0] in _STARTERS: return "\t"+v
+    return v.replace("\r","").replace("\n"," ")
+PAGE='<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>CSV Injection Sécurisé</title><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3}.bn{padding:12px 24px;display:flex;align-items:center;gap:10px;font-weight:600;font-size:.93em}.bn.v{background:#da3633}.bn.s{background:#238636}.ctr{max-width:1100px;margin:0 auto;padding:20px}h1{font-size:1.35em;margin-bottom:4px}h2{font-size:.97em;margin:14px 0 6px;color:#58a6ff;border-left:3px solid #58a6ff;padding-left:8px}.mt{color:#8b949e;font-size:.84em;margin-bottom:16px}.bge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:600;margin-right:4px}.bcwe{background:#1a1f2e;border:1px solid #30363d;color:#8b949e}.bo{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.br{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bgrn{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.tabs{display:flex;border-bottom:2px solid #21262d;margin-bottom:18px}.tb{padding:9px 18px;background:none;border:none;color:#8b949e;cursor:pointer;font-size:.87em;border-bottom:2px solid transparent;margin-bottom:-2px}.tb.a{color:#58a6ff;border-bottom-color:#58a6ff;font-weight:600}.tp{display:none}.tp.a{display:block}.cd{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:12px}.fg{margin-bottom:10px}.fg label{display:block;font-size:.81em;color:#8b949e;margin-bottom:3px}.fg input,.fg textarea{width:100%;padding:8px 10px;background:#0d1117;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:.87em;font-family:inherit}.btn{padding:8px 16px;border-radius:5px;cursor:pointer;font-size:.87em;font-weight:600;border:none;margin-right:6px}.btn:hover{opacity:.85}.btr{background:#da3633;color:#fff}.btg{background:#238636;color:#fff}.btgr{background:#21262d;border:1px solid #30363d;color:#e6edf3}.co{background:#0d1117;border:1px solid #30363d;border-left:3px solid #da3633;border-radius:5px;padding:12px;font-family:monospace;font-size:.79em;line-height:1.6;margin:6px 0;white-space:pre-wrap}.co.g{border-left-color:#3fb950}.bx{border-radius:6px;padding:10px 13px;font-size:.84em;margin:7px 0;line-height:1.5}.bx.d{background:#4a0d0d;border:1px solid #da3633;color:#f85149}.bx.w{background:#3d1f00;border:1px solid #d29922;color:#d29922}.bx.i{background:#0d2145;border:1px solid #1f6feb;color:#58a6ff}.bx.s{background:#0d4a1e;border:1px solid #238636;color:#3fb950}.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gd{display:grid;grid-template-columns:255px 1fr;gap:14px}@media(max-width:660px){.g2,.gd{grid-template-columns:1fr}}.pl{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:9px;margin-bottom:7px}.pl .lb{font-size:.74em;color:#58a6ff;font-weight:700;margin-bottom:2px}.pl .pc{font-family:monospace;font-size:.77em;margin-bottom:3px;word-break:break-all}.pl .pd{font-size:.76em;color:#8b949e;margin-bottom:4px}.res{background:#0d1117;border:1px solid #30363d;border-radius:5px;padding:12px;margin-top:10px;min-height:48px}table{width:100%;border-collapse:collapse;font-size:.81em}th,td{padding:7px 9px;border:1px solid #21262d}th{background:#161b22;color:#8b949e}code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-family:monospace}p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}</style></head><body><div class="bn s"><i class="fa-solid fa-circle-check"></i> CSV INJECTION SÉCURISÉ — SÉCURISÉ <span>| Tab prefix sanitization | CWE-1236 | Vulnérable: localhost:5013</span></div><div class="ctr"><h1>CSV Injection — Sécurisé</h1><div class="mt"><span class="bge bgrn">Sécurisé</span><span class="bge bcwe">CWE-1236</span><span class="bge bo">OWASP A03:2021</span></div><div class="tabs"><button class="tb a" onclick="st(\'demo\',this)"><i class="fa-solid fa-flask"></i> Démonstration</button><button class="tb" onclick="st(\'theory\',this)"><i class="fa-solid fa-book"></i> Théorie</button><button class="tb" onclick="st(\'code\',this)"><i class="fa-solid fa-code"></i> Code</button><button class="tb" onclick="st(\'fix\',this)"><i class="fa-solid fa-shield-halved"></i> Correction</button></div><div id="t-demo" class="tp a"><div class="gd"><div><div class="cd"><h2><i class="fa-solid fa-crosshairs"></i> Testez les payloads</h2><div class="bx s"><i class="fa-solid fa-circle-check"></i> Les caractères déclencheurs de formules sont <strong>neutralisés</strong> par un préfixe tab.</div><div class="pl"><div class="lb">1 — Normal</div><div class="pc">Alice Martin</div><button class="btn btgr" onclick="setEntry(\'Alice Martin\',\'alice@lab.local\',\'LabCorp\')"><i class="fa-solid fa-play"></i> Normal</button></div><div class="pl"><div class="lb">2 — Formule = (neutralisée)</div><div class="pc">=SUM(1+1)*10</div><div class="pd">Dans le CSV: deviendra TAB =SUM... → inoffensif.</div><button class="btn btgr" onclick="setEntry(\'=SUM(1+1)*10\',\'x@lab.local\',\'Test\')"><i class="fa-solid fa-play"></i> Tester</button></div><div class="pl"><div class="lb">3 — Formule + (neutralisée)</div><div class="pc">+INJECTION_CSV</div><button class="btn btgr" onclick="setEntry(\'+INJECTION_CSV\',\'x@lab.local\',\'Test\')"><i class="fa-solid fa-play"></i> Tester</button></div></div></div><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Export CSV sécurisé</h2><div class="bx s"><i class="fa-solid fa-shield-halved"></i> Formules préfixées par tab (\\t). Newlines supprimées.</div><div class="fg"><label>Nom</label><input id="fn" value="Alice Martin"></div><div class="fg"><label>Email</label><input id="fe" value="alice@lab.local"></div><div class="fg"><label>Entreprise</label><input id="fc" value="LabCorp"></div><button class="btn btgr" onclick="addEntry()"><i class="fa-solid fa-plus"></i> Ajouter</button><button class="btn btg" style="margin-left:8px" onclick="exportCSV()"><i class="fa-solid fa-download"></i> Exporter CSV</button><button class="btn btgr" onclick="clearAll()"><i class="fa-solid fa-trash"></i> Effacer</button></div><div class="res" id="sr"><p style="color:#6e7681;font-size:.82em">Entrées ici...</p></div><div class="bx i" style="margin-top:8px"><i class="fa-solid fa-eye"></i> Exportez et ouvrez avec un éditeur texte: les formules sont préfixées par un tab.</div></div></div></div><div id="t-theory" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-shield-halved"></i> Défense CSV</h2><p>La défense consiste à préfixer par un caractère tab (\\t) toute valeur commençant par un déclencheur de formule.</p><div class="co g">STARTERS = ("=", "+", "-", "@")\n\ndef sanitize(value: str) -> str:\n    if value and value[0] in STARTERS:\n        return "\\t" + value  # Préfixe tab\n    # Supprimer les newlines\n    return value.replace("\\r","").replace("\\n"," ")</div></div></div><div><div class="cd"><h2><i class="fa-solid fa-list-check"></i> Comparaison</h2><table><tr><th>Valeur</th><th>CSV Vulnérable</th><th>CSV Sécurisé</th></tr><tr><td>Alice</td><td>Alice</td><td>Alice</td></tr><tr><td>=SUM(1+1)</td><td style="color:#f85149">=SUM(1+1) (actif)</td><td style="color:#3fb950">\\t=SUM(1+1) (inactif)</td></tr></table></div></div></div></div><div id="t-code" class="tp"><div class="g2"><div><div class="cd"><h2 style="color:#3fb950"><i class="fa-solid fa-circle-check"></i> Sécurisé (ici)</h2><div class="co g">STARTERS = ("=", "+", "-", "@")\n\ndef sanitize(v):\n    if v and v[0] in STARTERS:\n        return "\\t" + v\n    return v.replace("\\r","").replace("\\n"," ")\n\nwriter.writerow([sanitize(n), sanitize(e), sanitize(c)])</div></div></div><div><div class="cd"><h2 style="color:#f85149"><i class="fa-solid fa-triangle-exclamation"></i> Vulnérable (:5013)</h2><div class="co">writer.writerow([name, email, company])\n# Aucune sanitisation → formules actives</div></div></div></div></div><div id="t-fix" class="tp"><div class="g2"><div><div class="cd"><h2><i class="fa-solid fa-circle-check"></i> Résumé</h2><div class="bx s">Préfixer les formules avec \\t neutralise l\'exécution dans les tableurs.<br>Les caractères à surveiller: = + - @ (début de cellule).</div></div></div></div></div></div><script>function st(n,b){document.querySelectorAll(\'.tp\').forEach(p=>p.classList.remove(\'a\'));document.querySelectorAll(\'.tb\').forEach(x=>x.classList.remove(\'a\'));document.getElementById(\'t-\'+n).classList.add(\'a\');if(b)b.classList.add(\'a\');}var entries=[{name:\'Alice Martin\',email:\'alice@lab.local\',company:\'LabCorp\'}];function setEntry(n,e,c){document.getElementById(\'fn\').value=n;document.getElementById(\'fe\').value=e;document.getElementById(\'fc\').value=c;}function addEntry(){entries.push({name:document.getElementById(\'fn\').value,email:document.getElementById(\'fe\').value,company:document.getElementById(\'fc\').value});renderEntries();}function clearAll(){entries=[];renderEntries();}function renderEntries(){const el=document.getElementById(\'sr\');if(!entries.length){el.innerHTML=\'<p style="color:#6e7681;font-size:.82em">Aucune entrée.</p>\';return;}el.innerHTML=entries.map(e=>\'<div class="bx i">\'+e.name+\' | \'+e.email+\' | \'+e.company+\'</div>\').join(\'\');}function exportCSV(){  fetch(\'/api/export\',{method:\'POST\',headers:{\'Content-Type\':\'application/json\'},body:JSON.stringify({entries})}).then(r=>r.blob()).then(b=>{const a=document.createElement(\'a\');a.href=URL.createObjectURL(b);a.download=\'contacts_secure.csv\';a.click();});}renderEntries();</script></body></html>'
 
-from flask import Flask, Response, jsonify, redirect, request
-
-app = Flask(__name__)
-app.secret_key = "lab-csv-secure-key"
-
-_ENTRIES: list[dict[str, str]] = [
-    {"name": "Alice Martin", "email": "alice@lab.local", "company": "LabCorp"},
-    {"name": "Bob Test", "email": "bob@lab.local", "company": "TestInc"},
-]
-
-# Characters that trigger formula evaluation in spreadsheets
-_FORMULA_STARTERS = ('=', '+', '-', '@', '\t', '\r', '\n')
-_EMAIL_RE = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
-
-_PAGE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>CSV Injection Lab — Secure</title>
-<style>
-body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
-.lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
-.defense-box {{ background: #d4edda; border: 1px solid #28a745; padding: 12px; margin: 16px 0; }}
-table {{ border-collapse: collapse; width: 100%; }}
-th, td {{ border: 1px solid #ddd; padding: 8px; }}
-form {{ margin: 20px 0; }}
-input {{ padding: 8px; width: 250px; }}
-button {{ background: #28a745; color: white; padding: 8px 16px; border: none; cursor: pointer; margin: 4px; }}
-</style></head>
-<body>
-<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> CSV INJECTION LAB — SECURE — Formula Sanitization Applied</div>
-<h1>Contact Export</h1>
-<div class="defense-box">
-<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> Formula character escaping | Input validation
-<br><small>Try adding <code>=SUM(1+1)</code> as name — the CSV will prefix it with a tab to neutralize it.</small>
-</div>
-
-<form method="POST" action="/add">
-  <input type="text" name="name" placeholder="Name">
-  <input type="text" name="email" placeholder="Email">
-  <input type="text" name="company" placeholder="Company">
-  <button type="submit">Add Entry</button>
-  <a href="/export"><button type="button">Export CSV</button></a>
-</form>
-
-<table>
-<tr><th>Name</th><th>Email</th><th>Company</th></tr>
-{rows}
-</table>
-</body></html>"""
-
-
-def _sanitize_csv_cell(value: str) -> str:
-    """Neutralize formula injection by prefixing formula starters with a tab."""
-    if value and value[0] in _FORMULA_STARTERS:
-        # Prefix with tab character — harmless but prevents formula execution
-        return "\t" + value
-    # Strip embedded newlines that could break CSV structure
-    return value.replace("\r", "").replace("\n", " ")
-
-
-@app.route("/", methods=["GET"])
-def index() -> Any:
-    rows = "".join(
-        f"<tr><td>{e['name']}</td><td>{e['email']}</td><td>{e['company']}</td></tr>"
-        for e in _ENTRIES
-    )
-    return _PAGE.format(rows=rows)
-
-
-@app.route("/add", methods=["POST"])
-def add_entry() -> Any:
-    name = request.form.get("name", "").strip()
-    email = request.form.get("email", "").strip()
-    company = request.form.get("company", "").strip()
-    if not name or not email or not company:
-        return redirect("/")
-    _ENTRIES.append({"name": name, "email": email, "company": company})
-    return redirect("/")
-
-
-@app.route("/export")
-def export_csv() -> Any:
-    """SECURE: values are sanitized before writing to CSV."""
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Name", "Email", "Company"])
-    for entry in _ENTRIES:
-        writer.writerow([
-            _sanitize_csv_cell(entry["name"]),
-            _sanitize_csv_cell(entry["email"]),
-            _sanitize_csv_cell(entry["company"]),
-        ])
-    return Response(
-        output.getvalue(),
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=contacts_secure.csv"},
-    )
-
-
-@app.route("/api/add", methods=["POST"])
-def api_add() -> Any:
-    data = request.get_json(force=True, silent=True) or {}
-    entry = {
-        "name": str(data.get("name", "")),
-        "email": str(data.get("email", "")),
-        "company": str(data.get("company", "")),
-    }
-    _ENTRIES.append(entry)
-    return jsonify({"status": "ok", "entry": entry})
-
-
-@app.route("/api/csv")
-def api_csv() -> Any:
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["Name", "Email", "Company"])
-    for entry in _ENTRIES:
-        writer.writerow([
-            _sanitize_csv_cell(entry["name"]),
-            _sanitize_csv_cell(entry["email"]),
-            _sanitize_csv_cell(entry["company"]),
-        ])
-    return jsonify({"csv": output.getvalue()})
-
-
-@app.route("/reset")
-def reset() -> Any:
-    _ENTRIES.clear()
-    _ENTRIES.extend([
-        {"name": "Alice Martin", "email": "alice@lab.local", "company": "LabCorp"},
-    ])
-    return redirect("/")
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+@app.route("/")
+def index()->Any:return PAGE
+@app.route("/api/export",methods=["POST"])
+def api_export()->Any:
+    data=request.get_json(force=True,silent=True) or {}
+    entries=data.get("entries",[])
+    out=io.StringIO()
+    w=csv.writer(out)
+    w.writerow(["Nom","Email","Entreprise"])
+    for e in entries:
+        w.writerow([_sanitize(e.get("name","")),_sanitize(e.get("email","")),_sanitize(e.get("company",""))])
+    return Response(out.getvalue(),mimetype="text/csv",headers={"Content-Disposition":"attachment; filename=contacts_secure.csv"})
+if __name__=="__main__":
+    app.run(host="0.0.0.0",port=int(os.environ.get("PORT",5000)),debug=False)
