@@ -1,6 +1,6 @@
 """
 Expression Injection Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: eval() on user input enables code execution
 CWE-94, OWASP A03:2021
@@ -21,7 +21,8 @@ app.secret_key = "lab-expr-vuln-key"
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Expression Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Expression Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -32,10 +33,10 @@ input {{ padding: 8px; width: 400px; }}
 button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ EXPRESSION INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> EXPRESSION INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>Calculator</h1>
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Show that the calculator accepts more than math.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Show that the calculator accepts more than math.
 <br>Hint: Try <code>__import__('os').environ.get('FLASK_ENV', 'EXPRESSION_INJECTION_DETECTED')</code>
 <br>Or simpler: <code>1+1</code> vs <code>"a"*10</code> (string operations — not just math!)
 <br><strong>Objective:</strong> Get a non-numeric result from the calculator.
@@ -66,7 +67,7 @@ code{{background:#f4f4f4;padding:2px 6px;display:block;margin:4px 0;}}
 <code>GET /calculate?expression=__import__('os').environ.get('FLASK_ENV','detected')</code>
 <p>Returns: development — accesses runtime environment!</p>
 <div class="warning">
-<strong>⚠️ In real attacks:</strong> eval() can execute arbitrary Python:
+<strong><i class="fa-solid fa-triangle-exclamation"></i> In real attacks:</strong> eval() can execute arbitrary Python:
 <code>__import__('os').system('id')  # executes OS command</code>
 This demonstration intentionally stops at environment variable access.
 Actual command execution is NOT demonstrated in this lab.

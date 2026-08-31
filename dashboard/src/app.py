@@ -150,6 +150,7 @@ _TOTAL_POINTS = sum(lab["points"] for lab in _LABS)
 _TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Injection Security Lab</title>
@@ -273,7 +274,7 @@ _TEMPLATE = """<!DOCTYPE html>
 
 <header>
   <div class="header-title">
-    <h1>🔐 Injection Security Lab</h1>
+    <h1><i class="fa-solid fa-lock"></i> Injection Security Lab</h1>
     <p>Educational cybersecurity laboratory — Local sandbox only</p>
   </div>
   <div class="score-badge">
@@ -283,7 +284,7 @@ _TEMPLATE = """<!DOCTYPE html>
 </header>
 
 <div class="warning-bar">
-  ⚠️ EDUCATIONAL USE ONLY &nbsp;|&nbsp; LOCAL SANDBOX &nbsp;|&nbsp;
+  <i class="fa-solid fa-triangle-exclamation"></i> EDUCATIONAL USE ONLY &nbsp;|&nbsp; LOCAL SANDBOX &nbsp;|&nbsp;
   DO NOT EXPOSE TO THE INTERNET &nbsp;|&nbsp;
   All vulnerabilities are intentional
 </div>
@@ -299,22 +300,22 @@ _TEMPLATE = """<!DOCTYPE html>
     <div class="card">
       <div class="card-header">
         <div class="card-title">{{ lab.name }}</div>
-        <span class="status-ready">● ready</span>
+        <span class="status-ready"><i class="fa-solid fa-circle fa-xs"></i> ready</span>
       </div>
       <div class="card-meta">
         <span class="badge badge-{{ lab.difficulty|lower }}">{{ lab.difficulty }}</span>
         <span class="badge badge-points">{{ lab.points }} pts</span>
         <span class="badge badge-owasp">{{ lab.owasp }}</span>
       </div>
-      <div class="card-component">🎯 {{ lab.component }}</div>
+      <div class="card-component"><i class="fa-solid fa-crosshairs"></i> {{ lab.component }}</div>
       <div class="cwe-tag">{{ lab.cwe }}</div>
       <div class="card-desc">{{ lab.description }}</div>
       <div class="card-actions">
         <a class="btn btn-vuln" href="http://localhost:{{ lab.vuln_port }}" target="_blank">
-          ⚠️ Vulnerable
+          <i class="fa-solid fa-triangle-exclamation"></i> Vulnerable
         </a>
         <a class="btn btn-secure" href="http://localhost:{{ lab.secure_port }}" target="_blank">
-          ✅ Secure
+          <i class="fa-solid fa-circle-check"></i> Secure
         </a>
       </div>
     </div>
@@ -322,7 +323,7 @@ _TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <div class="sql-theory-card">
-    <div class="sql-icon">📚</div>
+    <div class="sql-icon"><i class="fa-solid fa-book"></i></div>
     <div>
       <strong>SQL Injection — Theory Only</strong>
       <p style="color:#8b949e;font-size:0.9em;margin-top:4px;">

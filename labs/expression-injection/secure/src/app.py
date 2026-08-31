@@ -1,6 +1,6 @@
 """
 Expression Injection Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - AST-based safe math parser (no eval())
@@ -105,7 +105,8 @@ def safe_eval(expression: str) -> float | int:
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Expression Injection Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Expression Injection Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -117,10 +118,10 @@ input {{ padding: 8px; width: 400px; }}
 button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ EXPRESSION INJECTION LAB — SECURE — AST Math Parser Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> EXPRESSION INJECTION LAB — SECURE — AST Math Parser Applied</div>
 <h1>Calculator</h1>
 <div class="defense-box">
-<strong>🛡 Defenses:</strong> AST-based parser | Math-only node allowlist | No eval()
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> AST-based parser | Math-only node allowlist | No eval()
 <br><small>Try <code>__import__('os')</code> — rejected. Try <code>"x"*3</code> — rejected. Only math allowed.</small>
 </div>
 <form method="GET" action="/calculate">

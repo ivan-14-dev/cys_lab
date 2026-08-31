@@ -1,6 +1,6 @@
 """
 XSS Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: Unescaped HTML output (CWE-79, OWASP A03:2021)
 """
@@ -21,6 +21,7 @@ _comments: list[dict[str, str]] = []
 _PAGE_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <meta charset="UTF-8">
 <title>XSS Lab — Vulnerable</title>
 <style>
@@ -36,11 +37,11 @@ button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; c
 </style>
 </head>
 <body>
-<div class="lab-banner">⚠️ XSS LAB — VULNERABLE VERSION — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> XSS LAB — VULNERABLE VERSION — EDUCATIONAL USE ONLY</div>
 <h1>Community Comments</h1>
 
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Show that the application interprets your input as code,
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Show that the application interprets your input as code,
 not as text. Payload hint: <code>&lt;img src=x onerror="document.title='XSS_PROOF'"&gt;</code>
 <br><strong>Objective:</strong> Make the page title change to <code>XSS_PROOF</code>.
 </div>

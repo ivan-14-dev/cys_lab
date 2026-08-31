@@ -1,6 +1,6 @@
 """
 NoSQL Injection Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - Pydantic schema validation (enforces string types)
@@ -26,7 +26,8 @@ _USERS_DB = [
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>NoSQL Injection Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>NoSQL Injection Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -34,10 +35,10 @@ body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; pad
 .result {{ background: #1e1e1e; color: #00ff00; padding: 16px; border-radius: 4px; margin: 16px 0; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ NOSQL INJECTION LAB — SECURE — Schema Validation Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> NOSQL INJECTION LAB — SECURE — Schema Validation Applied</div>
 <h1>Authentication Portal</h1>
 <div class="defense-box">
-<strong>🛡 Defenses active:</strong> Pydantic schema | String type enforcement | Operator rejection
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses active:</strong> Pydantic schema | String type enforcement | Operator rejection
 <br><small>Try sending <code>{{"password": {{"$ne": null}}}}</code> — it will be rejected as wrong type.</small>
 </div>
 <p>Use the API: <code>POST /api/login</code> with JSON body.</p>

@@ -1,6 +1,6 @@
 """
 LDAP Injection Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: LDAP filter injection via string concatenation
 CWE-90, OWASP A03:2021
@@ -24,7 +24,8 @@ _LDAP_USERS = {
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>LDAP Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>LDAP Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -35,10 +36,10 @@ input {{ padding: 8px; width: 300px; }}
 button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ LDAP INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> LDAP INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>LDAP Directory Search</h1>
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Modify the LDAP filter to retrieve all users.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Modify the LDAP filter to retrieve all users.
 <br>Hint: Try username <code>*)(uid=*))(|(uid=*</code>
 <br><strong>Objective:</strong> Retrieve all users instead of just one.
 </div>

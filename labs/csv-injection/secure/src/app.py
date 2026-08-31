@@ -1,6 +1,6 @@
 """
 CSV Injection Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - Sanitize cells starting with formula characters (=, +, -, @, TAB, CR)
@@ -31,7 +31,8 @@ _EMAIL_RE = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>CSV Injection Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>CSV Injection Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -43,10 +44,10 @@ input {{ padding: 8px; width: 250px; }}
 button {{ background: #28a745; color: white; padding: 8px 16px; border: none; cursor: pointer; margin: 4px; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ CSV INJECTION LAB — SECURE — Formula Sanitization Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> CSV INJECTION LAB — SECURE — Formula Sanitization Applied</div>
 <h1>Contact Export</h1>
 <div class="defense-box">
-<strong>🛡 Defenses:</strong> Formula character escaping | Input validation
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> Formula character escaping | Input validation
 <br><small>Try adding <code>=SUM(1+1)</code> as name — the CSV will prefix it with a tab to neutralize it.</small>
 </div>
 

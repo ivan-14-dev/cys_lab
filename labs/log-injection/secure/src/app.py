@@ -1,6 +1,6 @@
 """
 Log Injection Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - Structured logging (extra dict — no string concatenation)
@@ -61,7 +61,8 @@ def _validate_username(username: str) -> str | None:
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Log Injection Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Log Injection Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -72,10 +73,10 @@ input {{ padding: 8px; width: 350px; }}
 button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ LOG INJECTION LAB — SECURE — Structured Logging Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> LOG INJECTION LAB — SECURE — Structured Logging Applied</div>
 <h1>Login Service</h1>
 <div class="defense-box">
-<strong>🛡 Defenses:</strong> Structured logging | Control char stripping | Username validation
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> Structured logging | Control char stripping | Username validation
 <br><small>Username is a field, not embedded in the log string. \\n injection has no effect.</small>
 </div>
 <form method="POST" action="/login">

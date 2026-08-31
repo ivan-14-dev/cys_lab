@@ -1,6 +1,6 @@
 """
 NoSQL Injection Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: MongoDB operator injection via unvalidated JSON body
 CWE-943, OWASP A03:2021
@@ -24,7 +24,8 @@ _USERS_DB = [
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>NoSQL Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>NoSQL Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -35,10 +36,10 @@ input {{ padding: 8px; width: 300px; }}
 button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ NOSQL INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> NOSQL INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>Authentication Portal</h1>
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Bypass authentication without knowing the password.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Bypass authentication without knowing the password.
 <br>Hint: Send JSON with <code>{{"username": "admin", "password": {{"$ne": null}}}}</code>
 <br><strong>Objective:</strong> Log in as admin using a MongoDB operator.
 </div>

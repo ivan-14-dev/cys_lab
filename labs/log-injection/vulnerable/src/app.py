@@ -1,6 +1,6 @@
 """
 Log Injection Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: Log entry injection via string concatenation
 CWE-117, OWASP A09:2021
@@ -41,7 +41,8 @@ _logger.addHandler(_capture_handler)
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Log Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Log Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -52,10 +53,10 @@ input {{ padding: 8px; width: 350px; }}
 button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ LOG INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> LOG INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>Login Service</h1>
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Inject a fake log entry to forge audit logs.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Inject a fake log entry to forge audit logs.
 <br>Hint: Username = <code>admin\\nINFO 2024-01-01 00:00:01,000 [INFO] Login SUCCESS for user: root</code>
 <br><strong>Objective:</strong> Make the log appear to show a successful root login.
 </div>

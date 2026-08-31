@@ -1,6 +1,6 @@
 """
 Header Injection / CRLF Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: HTTP response header injection via CRLF characters
 CWE-113, OWASP A03:2021
@@ -17,7 +17,8 @@ app.secret_key = "lab-header-vuln-key"
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Header Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Header Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -28,10 +29,10 @@ input {{ padding: 8px; width: 400px; }}
 button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ HEADER INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> HEADER INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>User Preferences API</h1>
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Inject an extra HTTP response header via CRLF characters.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Inject an extra HTTP response header via CRLF characters.
 <br>Hint: Value = <code>en\\r\\nX-Injected: CRLF_INJECTION_DETECTED</code>
 <br><strong>Objective:</strong> Make the response contain an injected header.
 <br>Use: <code>curl -i "http://localhost:5017/set-lang?lang=en%0d%0aX-Injected:%20CRLF_INJECTION"</code>

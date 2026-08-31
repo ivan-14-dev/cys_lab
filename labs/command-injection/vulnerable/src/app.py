@@ -1,6 +1,6 @@
 """
 Command Injection Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: OS command injection via shell=True + string concatenation
 CWE-78, OWASP A03:2021
@@ -21,7 +21,8 @@ _LAB_TARGETS = {"127.0.0.1", "localhost", "cmd-secure", "cmd-vulnerable"}
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Command Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Command Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -33,11 +34,11 @@ button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; c
 .danger {{ color: #dc3545; font-weight: bold; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ COMMAND INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> COMMAND INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>Network Diagnostic Tool</h1>
 
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Demonstrate that the tool executes more than just ping.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Demonstrate that the tool executes more than just ping.
 <br>Hint: Try <code>127.0.0.1; echo INJECTION_DETECTED</code>
 <br><strong>Objective:</strong> See <code>INJECTION_DETECTED</code> in the output.
 </div>
@@ -52,7 +53,7 @@ button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; c
 <pre id="output">{output}</pre>
 
 <hr>
-<p class="danger">⚠️ This is the vulnerable version. The command is constructed with shell=True.</p>
+<p class="danger"><i class="fa-solid fa-triangle-exclamation"></i> This is the vulnerable version. The command is constructed with shell=True.</p>
 <p>See the <a href="/source">vulnerable source</a> | <a href="/demo">demo payloads</a></p>
 </body></html>"""
 
@@ -65,7 +66,7 @@ pre{{background:#f4f4f4;padding:16px;border-radius:4px;}}
 <body>
 <h1>Vulnerable Code</h1>
 <div class="vuln">
-<strong>⚠️ VULNERABILITY:</strong> shell=True + string concatenation
+<strong><i class="fa-solid fa-triangle-exclamation"></i> VULNERABILITY:</strong> shell=True + string concatenation
 </div>
 <pre>
 # VULNERABLE — DO NOT DO THIS

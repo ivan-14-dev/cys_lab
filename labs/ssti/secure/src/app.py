@@ -1,6 +1,6 @@
 """
 SSTI Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - Fixed template string — user input is a VARIABLE, not part of the template
@@ -23,7 +23,8 @@ _NAME_PATTERN = re.compile(r"^[\w\s\-'.]{1,64}$")
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>SSTI Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>SSTI Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -35,11 +36,11 @@ button {{ background: #28a745; color: white; padding: 10px 20px; border: none; c
 .error {{ color: #dc3545; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ SSTI LAB — SECURE — Fixed Template + Variable Binding</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> SSTI LAB — SECURE — Fixed Template + Variable Binding</div>
 <h1>Greeting Service</h1>
 
 <div class="defense-box">
-<strong>🛡 Defenses active:</strong> Fixed template | User input as variable | Input validation
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses active:</strong> Fixed template | User input as variable | Input validation
 <br><small>Try <code>{{{{7*7}}}}</code> — it will be displayed as literal text, not evaluated.</small>
 </div>
 

@@ -1,6 +1,6 @@
 """
 Command Injection Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - subprocess with argument list (no shell=True)
@@ -31,7 +31,8 @@ _IP_PATTERN = re.compile(r"^(\d{1,3}\.){3}\d{1,3}$")
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Command Injection Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Command Injection Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -42,11 +43,11 @@ button {{ background: #28a745; color: white; padding: 10px 20px; border: none; c
 .defense-box {{ background: #d4edda; border: 1px solid #28a745; padding: 12px; margin: 16px 0; border-radius: 4px; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ COMMAND INJECTION LAB — SECURE — Argument List + Allowlist Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> COMMAND INJECTION LAB — SECURE — Argument List + Allowlist Applied</div>
 <h1>Network Diagnostic Tool</h1>
 
 <div class="defense-box">
-<strong>🛡 Defenses active:</strong>
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses active:</strong>
 subprocess list args (no shell=True) | Target allowlist | IP validation
 <br><small>Try injecting: <code>127.0.0.1; echo INJECTION_DETECTED</code> — it will be rejected.</small>
 <br><small>Allowed targets: 127.0.0.1, localhost</small>
@@ -73,7 +74,7 @@ pre{{background:#f4f4f4;padding:16px;border-radius:4px;}}
 <body>
 <h1>Secure Code</h1>
 <div class="secure">
-<strong>✅ DEFENSE:</strong> subprocess list + allowlist + no shell
+<strong><i class="fa-solid fa-circle-check"></i> DEFENSE:</strong> subprocess list + allowlist + no shell
 </div>
 <pre>
 # SECURE — argument list, no shell

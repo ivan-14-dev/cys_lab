@@ -1,6 +1,6 @@
 """
 XSS Lab — Secure Version
-✅ SECURE IMPLEMENTATION — demonstrates proper output encoding
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION — demonstrates proper output encoding
 
 Defenses applied:
 - Jinja2 auto-escaping (enabled by default)
@@ -36,6 +36,7 @@ _CSP = (
 _TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <meta charset="UTF-8">
 <title>XSS Lab — Secure</title>
 <style>
@@ -52,11 +53,11 @@ button { background: #28a745; color: white; padding: 10px 20px; border: none; cu
 </style>
 </head>
 <body>
-<div class="lab-banner">✅ XSS LAB — SECURE VERSION — Output Encoding Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> XSS LAB — SECURE VERSION — Output Encoding Applied</div>
 <h1>Community Comments</h1>
 
 <div class="defense-box">
-<strong>🛡 Defenses active:</strong>
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses active:</strong>
 Content-Security-Policy (script-src: none) |
 Jinja2 auto-escaping |
 Input validation

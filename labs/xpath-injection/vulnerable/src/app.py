@@ -1,6 +1,6 @@
 """
 XPath Injection Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: XPath filter injection via string concatenation
 CWE-643, OWASP A03:2021
@@ -44,7 +44,8 @@ _TREE = etree.fromstring(_XML_DATA.encode())
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>XPath Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>XPath Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -55,10 +56,10 @@ input {{ padding: 8px; width: 300px; }}
 button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ XPATH INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> XPATH INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>User Lookup (XML Database)</h1>
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Retrieve all users by manipulating the XPath query.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Retrieve all users by manipulating the XPath query.
 <br>Hint: Try username <code>' or '1'='1</code>
 <br><strong>Objective:</strong> Get all users returned despite not knowing any password.
 </div>

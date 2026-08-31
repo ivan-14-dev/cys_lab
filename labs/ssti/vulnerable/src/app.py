@@ -1,6 +1,6 @@
 """
 SSTI Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: Server-Side Template Injection via user-controlled template string
 CWE-94, OWASP A03:2021
@@ -22,7 +22,8 @@ app.secret_key = "lab-ssti-vuln-key"
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>SSTI Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>SSTI Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -33,11 +34,11 @@ input {{ padding: 8px; width: 400px; }}
 button {{ background: #dc3545; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ SSTI LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> SSTI LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>Greeting Service</h1>
 
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Show that the application evaluates your input as a template expression.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Show that the application evaluates your input as a template expression.
 <br>Hint: Try <code>{{{{7*7}}}}</code> as your name.
 <br><strong>Objective:</strong> See <code>49</code> in the result instead of <code>{{{{7*7}}}}</code>.
 </div>
@@ -100,7 +101,7 @@ code{{background:#f4f4f4;padding:2px 6px;display:block;margin:4px 0;}}
 <p>Expected output: Flask config object displayed.</p>
 
 <div class="warning">
-<strong>⚠️ Important:</strong> In real SSTI attacks, attackers can reach
+<strong><i class="fa-solid fa-triangle-exclamation"></i> Important:</strong> In real SSTI attacks, attackers can reach
 <code>__class__.__mro__</code> to execute OS commands. This demonstration is
 intentionally limited to math expressions only.
 </div>

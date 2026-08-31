@@ -1,6 +1,6 @@
 """
 Header Injection / CRLF Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - CRLF character stripping from all header values
@@ -23,7 +23,8 @@ _HEADER_VALUE_RE = re.compile(r'^[a-zA-Z0-9\-_]{1,32}$')
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Header Injection Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>Header Injection Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -34,10 +35,10 @@ input {{ padding: 8px; width: 400px; }}
 button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ HEADER INJECTION LAB — SECURE — CRLF Stripping Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> HEADER INJECTION LAB — SECURE — CRLF Stripping Applied</div>
 <h1>User Preferences API</h1>
 <div class="defense-box">
-<strong>🛡 Defenses:</strong> CRLF stripping | Allowlist | Control char rejection
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> CRLF stripping | Allowlist | Control char rejection
 <br><small>Allowed langs: en, fr, de, es, it, pt, nl, ja, zh</small>
 </div>
 <form method="GET" action="/set-lang">

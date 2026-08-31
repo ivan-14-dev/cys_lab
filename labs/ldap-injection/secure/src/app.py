@@ -1,6 +1,6 @@
 """
 LDAP Injection Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - LDAP special character escaping
@@ -30,7 +30,8 @@ _USERNAME_PATTERN = re.compile(r'^[a-zA-Z0-9_\-]{1,32}$')
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>LDAP Injection Lab — Secure</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>LDAP Injection Lab — Secure</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #28a745; color: white; padding: 10px; border-radius: 4px; }}
@@ -41,10 +42,10 @@ input {{ padding: 8px; width: 300px; }}
 button {{ background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; }}
 </style></head>
 <body>
-<div class="lab-banner">✅ LDAP INJECTION LAB — SECURE — Filter Escaping Applied</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> LDAP INJECTION LAB — SECURE — Filter Escaping Applied</div>
 <h1>LDAP Directory Search</h1>
 <div class="defense-box">
-<strong>🛡 Defenses active:</strong> LDAP special char escaping | Username allowlist | Length limit
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses active:</strong> LDAP special char escaping | Username allowlist | Length limit
 <br><small>Try injecting <code>*</code> or <code>*)(uid=*)</code> — they will be escaped.</small>
 </div>
 <form method="GET" action="/search">

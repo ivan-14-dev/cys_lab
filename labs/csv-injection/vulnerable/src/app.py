@@ -1,6 +1,6 @@
 """
 CSV Injection Lab — Vulnerable Version
-⚠️ INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
+<i class="fa-solid fa-triangle-exclamation"></i> INTENTIONALLY VULNERABLE — EDUCATIONAL USE ONLY
 
 Demonstrates: Formula injection in CSV exports
 CWE-1236, OWASP A03:2021
@@ -24,7 +24,8 @@ _ENTRIES: list[dict[str, str]] = [
 
 _PAGE = """<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>CSV Injection Lab — Vulnerable</title>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>CSV Injection Lab — Vulnerable</title>
 <style>
 body {{ font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }}
 .lab-banner {{ background: #dc3545; color: white; padding: 10px; border-radius: 4px; }}
@@ -37,10 +38,10 @@ button {{ background: #dc3545; color: white; padding: 8px 16px; border: none; cu
 .btn-green {{ background: #28a745; }}
 </style></head>
 <body>
-<div class="lab-banner">⚠️ CSV INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
+<div class="lab-banner"><i class="fa-solid fa-triangle-exclamation"></i> CSV INJECTION LAB — VULNERABLE — EDUCATIONAL USE ONLY</div>
 <h1>Contact Export</h1>
 <div class="ctf-box">
-<strong>🎯 MISSION:</strong> Add an entry with a spreadsheet formula in the Name field.
+<strong><i class="fa-solid fa-crosshairs"></i> MISSION:</strong> Add an entry with a spreadsheet formula in the Name field.
 <br>Hint: Name = <code>=SUM(1+1)*10</code> or <code>+LAB_INJECTION_DETECTED</code>
 <br><strong>Objective:</strong> Export CSV and verify the formula appears unescaped.
 </div>

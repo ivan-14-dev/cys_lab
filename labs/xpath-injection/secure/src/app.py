@@ -1,6 +1,6 @@
 """
 XPath Injection Lab — Secure Version
-✅ SECURE IMPLEMENTATION
+<i class="fa-solid fa-circle-check"></i> SECURE IMPLEMENTATION
 
 Defenses applied:
 - Single-quote escaping in XPath values
@@ -62,7 +62,8 @@ def _query_secure(username: str) -> tuple[list[dict], str, str | None]:
 @app.route("/", methods=["GET"])
 def index() -> Any:
     return """<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>XPath Secure</title>
+<html><head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"><meta charset="UTF-8"><title>XPath Secure</title>
 <style>body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;padding:0 20px;}
 .lab-banner{background:#28a745;color:white;padding:10px;border-radius:4px;}
 .defense-box{background:#d4edda;border:1px solid #28a745;padding:12px;margin:16px 0;}
@@ -70,10 +71,10 @@ input{padding:8px;width:300px;}
 button{background:#28a745;color:white;padding:10px 20px;border:none;cursor:pointer;}
 </style></head>
 <body>
-<div class="lab-banner">✅ XPATH INJECTION LAB — SECURE</div>
+<div class="lab-banner"><i class="fa-solid fa-circle-check"></i> XPATH INJECTION LAB — SECURE</div>
 <h1>User Lookup</h1>
 <div class="defense-box">
-<strong>🛡 Defenses:</strong> XPath string escaping | Username allowlist
+<strong><i class="fa-solid fa-shield-halved"></i> Defenses:</strong> XPath string escaping | Username allowlist
 </div>
 <form method="GET" action="/lookup">
 <input type="text" name="username" placeholder="alice">
