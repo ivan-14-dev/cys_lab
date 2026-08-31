@@ -40,7 +40,7 @@ code{background:#0d1117;padding:1px 4px;border-radius:2px;font-size:.84em;font-f
 p{margin-bottom:5px;line-height:1.55;font-size:.87em;color:#8b949e}ul{padding-left:17px;color:#8b949e;font-size:.87em;line-height:1.85}
 </style></head><body>
 <div class="bn"><i class="fa-solid fa-triangle-exclamation"></i> COMMAND INJECTION — VULNÉRABLE
-<span>| shell=True + concaténation | CWE-78 | OWASP A03:2021 | Sécurisé: localhost:5004</span></div>
+<span>| shell=True + concaténation | CWE-78 | OWASP A03:2021 | Sécurisé: localhost:5004</span><button id="lang-btn" onclick="toggleLang()" style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.8em;font-weight:600">EN</button></div>
 <div class="ctr">
 <h1>Command Injection — Outil de diagnostic réseau</h1>
 <div class="mt"><span class="bge br">Vulnérable</span><span class="bge bcwe">CWE-78</span><span class="bge bo">OWASP A03:2021</span></div>
@@ -239,6 +239,10 @@ function doPing(){
       else out.style.color='#00ff00';
     }).catch(e=>{out.textContent='Erreur: '+e;});
 }
+
+var LANG='fr';var TXT={fr:{demo:'Démonstration',theory:'Théorie',code:'Code',fix:'Correction',langLabel:'EN'},en:{demo:'Demonstration',theory:'Theory',code:'Code',fix:'Defense',langLabel:'FR'}};
+function toggleLang(){LANG=LANG==='fr'?'en':'fr';var b=document.getElementById('lang-btn');if(b)b.textContent=TXT[LANG].langLabel;document.querySelectorAll('[data-key]').forEach(function(el){var k=el.getAttribute('data-key');if(TXT[LANG][k])el.textContent=TXT[LANG][k];});}
+function setPayload(btn){var u=btn.getAttribute('data-u');var p=btn.getAttribute('data-p');var v=btn.getAttribute('data-v');if(document.getElementById('fu')&&u!==null)document.getElementById('fu').value=u;if(document.getElementById('fp')&&p!==null)document.getElementById('fp').value=p;if(document.getElementById('fname')&&v!==null)document.getElementById('fname').value=v;if(document.getElementById('ft')&&v!==null)document.getElementById('ft').value=v;if(document.getElementById('fe')&&v!==null)document.getElementById('fe').value=v;if(typeof updatePreview==='function')updatePreview();if(typeof updateQ==='function')updateQ();}
 </script>
 </body></html>"""
 

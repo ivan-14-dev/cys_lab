@@ -186,7 +186,7 @@ Résultat : cookie envoyé à l'attaquant → session volée</div>
 <div class="code bad"><span style="color:#f85149"># MAUVAIS — f-string non sécurisée</span>
 return f"&lt;p&gt;Bonjour {{user_input}}&lt;/p&gt;"
 <span style="color:#6e7681"># user_input = "&lt;script&gt;alert(1)&lt;/script&gt;"
-# → &lt;p&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;/p&gt;  ← EXÉCUTÉ</span></div>
+# → &lt;p&gt;&lt;script&gt;alert(1)&lt;/script&gt;&lt;/p&gt;  ← EXÉCUTÉ</span><button id="lang-btn" onclick="toggleLang()" style="margin-left:auto;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:4px;cursor:pointer;font-size:.8em;font-weight:600">EN</button></div>
 <h2><i class="fa-solid fa-book-open"></i> Références</h2>
 <div class="box info">
   <div>CWE-79 — Improper Neutralization of Input During Web Page Generation</div>
@@ -305,6 +305,10 @@ function loadComments(){{
   }});
 }}
 loadComments();
+
+var LANG='fr';var TXT={{fr:{{demo:'Démonstration',theory:'Théorie',code:'Code',fix:'Correction',langLabel:'EN'}},en:{{demo:'Demonstration',theory:'Theory',code:'Code',fix:'Defense',langLabel:'FR'}}}};
+function toggleLang(){{LANG=LANG==='fr'?'en':'fr';var b=document.getElementById('lang-btn');if(b)b.textContent=TXT[LANG].langLabel;document.querySelectorAll('[data-key]').forEach(function(el){{var k=el.getAttribute('data-key');if(TXT[LANG][k])el.textContent=TXT[LANG][k];}});}}
+function setPayload(btn){{var u=btn.getAttribute('data-u');var p=btn.getAttribute('data-p');var v=btn.getAttribute('data-v');if(document.getElementById('fu')&&u!==null)document.getElementById('fu').value=u;if(document.getElementById('fp')&&p!==null)document.getElementById('fp').value=p;if(document.getElementById('fname')&&v!==null)document.getElementById('fname').value=v;if(document.getElementById('ft')&&v!==null)document.getElementById('ft').value=v;if(typeof updatePreview==='function')updatePreview();if(typeof updateQ==='function')updateQ();}}
 </script>
 </body></html>"""
 
