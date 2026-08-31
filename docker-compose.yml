@@ -3,8 +3,14 @@
 # ⚠️ EDUCATIONAL USE ONLY — DO NOT EXPOSE TO INTERNET
 
 networks:
+  # Internal-only: container-to-container traffic (no internet, no host-initiated connections)
   lab-network:
-    internal: true  # No external internet access
+    internal: true
+    driver: bridge
+  # Host-access: allows port publishing to localhost (non-internal bridge)
+  # Containers on this network cannot reach the internet (no default gateway routing externally)
+  host-access:
+    internal: false
     driver: bridge
 
 volumes:
@@ -36,6 +42,7 @@ services:
       - "127.0.0.1:8080:8080"
     networks:
       - lab-network
+      - host-access
     environment:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
@@ -55,6 +62,7 @@ services:
       - "127.0.0.1:5001:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -72,6 +80,7 @@ services:
       - "127.0.0.1:5002:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -92,6 +101,7 @@ services:
       - "127.0.0.1:5003:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
       - /app/data
@@ -110,6 +120,7 @@ services:
       - "127.0.0.1:5004:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -130,6 +141,7 @@ services:
       - "127.0.0.1:5005:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -147,6 +159,7 @@ services:
       - "127.0.0.1:5006:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -187,6 +200,7 @@ services:
       - "127.0.0.1:5007:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -207,6 +221,7 @@ services:
       - "127.0.0.1:5008:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -251,6 +266,7 @@ services:
       - "127.0.0.1:5009:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -274,6 +290,7 @@ services:
       - "127.0.0.1:5010:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -300,6 +317,7 @@ services:
       - "127.0.0.1:5011:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -317,6 +335,7 @@ services:
       - "127.0.0.1:5012:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -337,6 +356,7 @@ services:
       - "127.0.0.1:5013:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -354,6 +374,7 @@ services:
       - "127.0.0.1:5014:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -374,6 +395,7 @@ services:
       - "127.0.0.1:5015:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
       - /app/logs
@@ -392,6 +414,7 @@ services:
       - "127.0.0.1:5016:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
       - /app/logs
@@ -413,6 +436,7 @@ services:
       - "127.0.0.1:5017:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -430,6 +454,7 @@ services:
       - "127.0.0.1:5018:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -450,6 +475,7 @@ services:
       - "127.0.0.1:5019:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
@@ -467,6 +493,7 @@ services:
       - "127.0.0.1:5020:5000"
     networks:
       - lab-network
+      - host-access
     tmpfs:
       - /tmp
     read_only: true
