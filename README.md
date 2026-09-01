@@ -23,7 +23,7 @@ make up
 
 ---
 
-## Labs — 11 types d'injection, 110 points
+## Labs — 14 types de vulnérabilités, 145 points
 
 | Lab                | Points | Difficulty | Port vuln | Port secure | OWASP    |
 |--------------------|--------|------------|-----------|-------------|----------|
@@ -38,8 +38,11 @@ make up
 | Header Injection   | 5      | Easy       | 5017      | 5018        | A03:2021 |
 | Expression Inject. | 10     | Medium     | 5019      | 5020        | A03:2021 |
 | SQL Injection      | 15     | Medium     | 5021      | 5022        | A03:2021 |
+| SSRF               | 15     | Hard       | 5023      | 5024        | A10:2021 |
+| IDOR               | 10     | Easy       | 5025      | 5026        | A01:2021 |
+| Path Traversal     | 10     | Medium     | 5027      | 5028        | A01:2021 |
 
-**Total: 110 points**
+**Total: 145 points**
 
 ---
 
@@ -196,6 +199,45 @@ La concaténation de chaînes dans les requêtes SQL permet bypass d'auth et ext
 
 ---
 
+### 12. SSRF — Server-Side Request Forgery · CWE-918
+
+Le serveur effectue des requêtes HTTP avec des URLs non validées → accès aux services internes.
+
+| Vulnérable (`:5023`) | Sécurisé (`:5024`) |
+|---|---|
+| ![SSRF Vulnerable](docs/screenshots/ssrf-vulnerable.png) | ![SSRF Secure](docs/screenshots/ssrf-secure.png) |
+
+**Payload demo :** `http://localhost:5000/internal/flag` → flag interne exposé via SSRF  
+**Correction :** Allowlist de domaines + blocage des IPs privées
+
+---
+
+### 13. IDOR — Insecure Direct Object Reference · CWE-639
+
+Les IDs utilisateur ne sont pas vérifiés → accès aux profils d'autres utilisateurs.
+
+| Vulnérable (`:5025`) | Sécurisé (`:5026`) |
+|---|---|
+| ![IDOR Vulnerable](docs/screenshots/idor-vulnerable.png) | ![IDOR Secure](docs/screenshots/idor-secure.png) |
+
+**Payload demo :** `/api/user/3` → profil admin exposé sans autorisation  
+**Correction :** Vérification d'autorisation par requête
+
+---
+
+### 14. Path Traversal · CWE-22
+
+Les séquences `../` dans les noms de fichiers permettent de lire des fichiers hors du répertoire autorisé.
+
+| Vulnérable (`:5027`) | Sécurisé (`:5028`) |
+|---|---|
+| ![Path Traversal Vulnerable](docs/screenshots/pathtraversal-vulnerable.png) | ![Path Traversal Secure](docs/screenshots/pathtraversal-secure.png) |
+
+**Payload demo :** `../../../../tmp/flag.txt` → fichier flag lu via traversée  
+**Correction :** `os.path.basename()` + `os.path.realpath()` + vérification de préfixe
+
+---
+
 ## Architecture
 
 ```
@@ -212,6 +254,9 @@ HOST MACHINE
   localhost:5017/5018    →  Header Injection
   localhost:5019/5020    →  Expression Injection
   localhost:5021/5022    →  SQL Injection
+  localhost:5023/5024    →  SSRF
+  localhost:5025/5026    →  IDOR
+  localhost:5027/5028    →  Path Traversal
 
   [ lab-network: internal only, no external internet access ]
 ```
@@ -239,6 +284,9 @@ make lab-log
 make lab-header
 make lab-expression
 make lab-sql
+make lab-ssrf
+make lab-idor
+make lab-pathtraversal
 ```
 
 ---

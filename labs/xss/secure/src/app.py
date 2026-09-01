@@ -13,7 +13,7 @@ app.secret_key = "lab-xss-secure-key"
 _comments: list[dict[str, str]] = []
 _NAME_RE = re.compile(r"^[\w\s\-'.,!?]{1,64}$")
 _CSP = ("default-src 'self'; "
-        "script-src 'none'; "
+        "script-src 'unsafe-inline'; "
         "object-src 'none'; "
         "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
         "font-src https://cdnjs.cloudflare.com; "

@@ -15,6 +15,9 @@
 | Log Injection       | CWE-117    | A09:2021  | Unsanitized log concatenation  | Log forgery, log poisoning      | Structured logging, encoding      |
 | Header Injection    | CWE-113    | A03:2021  | CRLF in header values          | Response splitting, redirect    | Strip CRLF, validate header vals  |
 | Expression Injection| CWE-94     | A03:2021  | eval() on user input           | RCE, sandbox escape             | Safe parser, allowlist operators  |
+| SSRF                | CWE-918    | A10:2021  | Unrestricted URL fetch         | Internal service access         | URL allowlist, block private IPs  |
+| IDOR                | CWE-639    | A01:2021  | No authorization on object ref | Data breach, privilege escalation| Per-request authorization check  |
+| Path Traversal      | CWE-22     | A01:2021  | Unvalidated file path          | Arbitrary file read             | basename + realpath + prefix check|
 
 ---
 
@@ -144,4 +147,56 @@ Secure:     strip \r\n from all header values
 User input: __import__('os').system('id')
 Vulnerable: eval(user_input)  ← system command executed
 Secure:     AST-based math parser, allowlist of operators
+```
+
+---
+
+## 11. SQL Injection
+
+**Type:** SQL query injection  
+**Interpreter:** SQL database engine  
+
+```
+User input: ' OR '1'='1
+Vulnerable: f"SELECT * FROM users WHERE user='{user_input}'"  ← returns all rows
+Secure:     cursor.execute("SELECT * FROM users WHERE user=?", (user_input,))
+```
+
+---
+
+## 12. Server-Side Request Forgery (SSRF)
+
+**Type:** URL injection into server-side HTTP requests  
+**Interpreter:** HTTP client library  
+
+```
+User input: http://localhost:5000/internal/flag
+Vulnerable: requests.get(user_url)  ← fetches internal service
+Secure:     validate URL against allowlist, block private IPs
+```
+
+---
+
+## 13. Insecure Direct Object Reference (IDOR)
+
+**Type:** Authorization bypass via predictable identifiers  
+**Interpreter:** Application access control logic  
+
+```
+User input: /api/user/3  (admin's ID)
+Vulnerable: return db.get_user(uid)  ← no ownership check
+Secure:     if uid != current_user.id: return 403
+```
+
+---
+
+## 14. Path Traversal
+
+**Type:** File path manipulation  
+**Interpreter:** OS filesystem  
+
+```
+User input: ../../../../etc/passwd
+Vulnerable: open(os.path.join(base_dir, user_input))  ← escapes base directory
+Secure:     os.path.basename(user_input)  → strips directory traversal
 ```

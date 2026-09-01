@@ -70,6 +70,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{xss_stored_camera_hijack}
 
   xss-secure:
     <<: [*security-defaults, *resource-limits]
@@ -110,6 +111,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{cmd_rce_system_recon}
 
   cmd-secure:
     <<: [*security-defaults, *resource-limits]
@@ -149,6 +151,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{ssti_rce_via_mro_chain}
 
   ssti-secure:
     <<: [*security-defaults, *resource-limits]
@@ -210,6 +213,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{nosql_regex_blind_extract}
       - MONGO_URI=mongodb://mongodb:27017/lab_nosql
 
   nosql-secure:
@@ -276,6 +280,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{ldap_filter_bypass_all}
       - LDAP_HOST=openldap
       - LDAP_PORT=389
       - LDAP_BASE_DN=dc=lab,dc=local
@@ -325,6 +330,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{xpath_union_admin_extract}
 
   xpath-secure:
     <<: [*security-defaults, *resource-limits]
@@ -364,6 +370,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{csv_formula_exfiltration}
 
   csv-secure:
     <<: [*security-defaults, *resource-limits]
@@ -404,6 +411,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{log_injection_audit_forge}
 
   log-secure:
     <<: [*security-defaults, *resource-limits]
@@ -444,6 +452,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{header_crlf_session_fixation}
 
   header-secure:
     <<: [*security-defaults, *resource-limits]
@@ -483,6 +492,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{expr_eval_rce_full_access}
 
   expr-secure:
     <<: [*security-defaults, *resource-limits]
@@ -522,6 +532,7 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=0
       - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{sqli_union_credential_dump}
 
   sqli-secure:
     <<: [*security-defaults, *resource-limits]
@@ -530,6 +541,126 @@ services:
       dockerfile: Dockerfile
     ports:
       - "127.0.0.1:5022:5000"
+    networks:
+      - lab-network
+      - host-access
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # SSRF LAB
+  # ─────────────────────────────────────────
+  ssrf-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/ssrf/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5023:5000"
+    networks:
+      - lab-network
+      - host-access
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{ssrf_internal_service_access}
+
+  ssrf-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/ssrf/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5024:5000"
+    networks:
+      - lab-network
+      - host-access
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # IDOR LAB
+  # ─────────────────────────────────────────
+  idor-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/idor/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5025:5000"
+    networks:
+      - lab-network
+      - host-access
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{idor_broken_access_control}
+
+  idor-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/idor/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5026:5000"
+    networks:
+      - lab-network
+      - host-access
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=secure
+
+  # ─────────────────────────────────────────
+  # PATH TRAVERSAL LAB
+  # ─────────────────────────────────────────
+  pathtraversal-vulnerable:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/path-traversal/vulnerable
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5027:5000"
+    networks:
+      - lab-network
+      - host-access
+    tmpfs:
+      - /tmp
+    read_only: true
+    environment:
+      - FLASK_ENV=development
+      - FLASK_DEBUG=0
+      - LAB_MODE=vulnerable
+      - LAB_FLAG=FLAG{path_traversal_file_read}
+
+  pathtraversal-secure:
+    <<: [*security-defaults, *resource-limits]
+    build:
+      context: ./labs/path-traversal/secure
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5028:5000"
     networks:
       - lab-network
       - host-access

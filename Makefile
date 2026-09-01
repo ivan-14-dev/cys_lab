@@ -1,6 +1,7 @@
 .PHONY: build up down restart test logs clean \
         lab-xss lab-command lab-ssti lab-nosql lab-ldap lab-xpath \
-        lab-csv lab-log lab-header lab-expression help
+        lab-csv lab-log lab-header lab-expression lab-sql \
+        lab-ssrf lab-idor lab-pathtraversal help
 
 COMPOSE = docker compose
 ENV_FILE = .env
@@ -38,6 +39,14 @@ up: ## Start the full lab
 	@echo "  Header Secure:      http://localhost:5018"
 	@echo "  Expr Vulnerable:    http://localhost:5019"
 	@echo "  Expr Secure:        http://localhost:5020"
+	@echo "  SQL Vulnerable:     http://localhost:5021"
+	@echo "  SQL Secure:         http://localhost:5022"
+	@echo "  SSRF Vulnerable:    http://localhost:5023"
+	@echo "  SSRF Secure:        http://localhost:5024"
+	@echo "  IDOR Vulnerable:    http://localhost:5025"
+	@echo "  IDOR Secure:        http://localhost:5026"
+	@echo "  PathTrav Vuln:      http://localhost:5027"
+	@echo "  PathTrav Secure:    http://localhost:5028"
 
 down: ## Stop the lab
 	@echo "==> Stopping Injection Security Lab..."
@@ -49,7 +58,8 @@ test: ## Run all automated tests
 	@echo "==> Running all lab tests..."
 	@for lab in xss command-injection ssti nosql-injection ldap-injection \
 	             xpath-injection csv-injection log-injection \
-	             header-injection expression-injection; do \
+	             header-injection expression-injection sql-injection \
+	             ssrf idor path-traversal; do \
 		echo ""; \
 		echo "--- Testing: $$lab ---"; \
 		cd labs/$$lab && python -m pytest tests/ -v --tb=short 2>&1 || true; \
@@ -120,3 +130,18 @@ lab-expression: ## Start only the Expression Injection lab
 	$(COMPOSE) --env-file $(ENV_FILE) up -d expr-vulnerable expr-secure
 	@echo "Expr Vulnerable: http://localhost:5019"
 	@echo "Expr Secure:     http://localhost:5020"
+
+lab-ssrf: ## Start only the SSRF lab
+	$(COMPOSE) --env-file $(ENV_FILE) up -d ssrf-vulnerable ssrf-secure
+	@echo "SSRF Vulnerable: http://localhost:5023"
+	@echo "SSRF Secure:     http://localhost:5024"
+
+lab-idor: ## Start only the IDOR lab
+	$(COMPOSE) --env-file $(ENV_FILE) up -d idor-vulnerable idor-secure
+	@echo "IDOR Vulnerable: http://localhost:5025"
+	@echo "IDOR Secure:     http://localhost:5026"
+
+lab-pathtraversal: ## Start only the Path Traversal lab
+	$(COMPOSE) --env-file $(ENV_FILE) up -d pathtraversal-vulnerable pathtraversal-secure
+	@echo "PathTrav Vuln:   http://localhost:5027"
+	@echo "PathTrav Secure: http://localhost:5028"
